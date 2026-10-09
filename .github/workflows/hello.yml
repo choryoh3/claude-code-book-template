@@ -1,0 +1,16 @@
+name: Hello World
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+      - name: Run a script
+        run: echo "Hello, World!"
