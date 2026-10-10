@@ -1,0 +1,56 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "user/server",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "./user/server", "exec", "tsx", "--inspect", "src/main.ts"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "admin/server",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "./admin/server", "exec", "tsx", "--inspect", "src/main.ts"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "user/client (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/user/client"
+    },
+    {
+      "name": "admin/client (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5174",
+      "webRoot": "${workspaceFolder}/admin/client"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "User Full Stack",
+      "configurations": ["user/server", "user/client (Chrome)"]
+    },
+    {
+      "name": "Admin Full Stack",
+      "configurations": ["admin/server", "admin/client (Chrome)"]
+    },
+    {
+      "name": "All",
+      "configurations": [
+        "user/server",
+        "admin/server",
+        "user/client (Chrome)",
+        "admin/client (Chrome)"
+      ]
+    }
+  ]
+}

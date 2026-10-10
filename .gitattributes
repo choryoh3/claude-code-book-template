@@ -1,0 +1,10 @@
+# 改行コードは LF に統一（.editorconfig と合わせる）。Windows でも CRLF に変換されない
+* text=auto eol=lf
+
+# PowerShell 5.1 用スクリプトのみ CRLF
+*.ps1 text eol=crlf
+
+# バイナリ
+*.png binary
+*.xlsx binary
+*.wav binary

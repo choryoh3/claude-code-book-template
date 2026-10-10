@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "Vue.volar",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "vitest.explorer",
+    "ms-playwright.playwright",
+    "usernamehw.errorlens",
+    "streetsidesoftware.code-spell-checker",
+    "eamodio.gitlens",
+    "EditorConfig.EditorConfig",
+    "ckolkman.vscode-postgres",
+    "anthropic.claude-code",
+    "bierner.markdown-mermaid"
+  ]
+}

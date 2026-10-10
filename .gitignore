@@ -1,0 +1,25 @@
+node_modules
+dist
+coverage
+.turbo
+*.tsbuildinfo
+
+# 秘密情報(.env.example のみコミット)
+.env
+.env.*
+!.env.example
+
+# アプリのログ(JSON Lines。AI の不具合調査用。コミットしない)
+logs
+
+# テスト成果物
+playwright-report
+test-results
+
+# Claude Code(個人設定・一時フラグ)
+.claude/settings.local.json
+.claude/.db-reset-allowed
+
+# OS / Editor
+.DS_Store
+Thumbs.db

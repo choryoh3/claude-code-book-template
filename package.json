@@ -1,0 +1,47 @@
+{
+  "name": "xclone",
+  "version": "0.0.0",
+  "private": true,
+  "description": "X (旧Twitter) クローン SNS — 管理者アプリ / 一般ユーザーアプリのモノレポ",
+  "packageManager": "pnpm@10.34.6",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --if-present dev",
+    "build": "pnpm -r --if-present build",
+    "test": "pnpm -r --if-present test",
+    "test:e2e": "pnpm -r --if-present test:e2e",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm typecheck && pnpm lint && pnpm test",
+    "db:migrate": "pnpm --filter @xclone/db migrate",
+    "db:codegen": "pnpm --filter @xclone/db codegen",
+    "db:seed": "pnpm --filter @xclone/db seed",
+    "db:reset": "pnpm --filter @xclone/db reset",
+    "logs:errors": "node scripts/logs-errors.mjs",
+    "logs:trace": "node scripts/logs-trace.mjs",
+    "spec:screens": "node scripts/build-screen-spec.mjs",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,mts,cts,js,mjs,cjs,vue}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,css,md,yml,yaml}": "prettier --write"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^7.7.3",
+    "eslint": "^9.39.5",
+    "exceljs": "^4.4.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "typescript": "^5.9.3"
+  }
+}

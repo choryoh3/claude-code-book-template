@@ -1,0 +1,17 @@
+# 既存のローカル PostgreSQL がある場合は不要(任意)
+services:
+  postgres:
+    image: postgres:16
+    container_name: xclone-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test999
+      POSTGRES_DB: xclone
+    ports:
+      - '5432:5432'
+    volumes:
+      - xclone-pgdata:/var/lib/postgresql/data
+
+volumes:
+  xclone-pgdata:

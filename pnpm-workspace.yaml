@@ -1,0 +1,9 @@
+packages:
+  - user/*
+  - admin/*
+  - packages/*
+
+# pnpm 10 はデフォルトでインストールスクリプトを実行しない。必要なものだけ許可する
+onlyBuiltDependencies:
+  - bcrypt
+  - esbuild
