@@ -1,0 +1,39 @@
+/*
+ * デザイントークン（色・角丸・フォント）。見た目の「唯一の定義場所」。
+ * - コンポーネントは bg-surface のような「意味のある名前」で色を使う（青 500 のような値は直接使わない）
+ * - ダークモードはここで値を差し替えるだけで全画面に反映される
+ */
+@import 'tailwindcss';
+
+@theme {
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-like: var(--like);
+  --color-repost: var(--repost);
+  --radius-card: 1rem;
+}
+
+/* ライトテーマ（既定） */
+:root {
+  --surface: #ffffff;
+  --surface-hover: #f7f9f9;
+  --text: #0f1419;
+  --text-muted: #536471;
+  --border: #eff3f4;
+  --accent: #1d9bf0;
+  --like: #f91880;
+  --repost: #00ba7c;
+}
+
+/* ダークテーマ（<html class="dark"> のときに適用） */
+.dark {
+  --surface: #000000;
+  --surface-hover: #080808;
+  --text: #e7e9ea;
+  --text-muted: #71767b;
+  --border: #2f3336;
+}
