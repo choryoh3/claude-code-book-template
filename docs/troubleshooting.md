@@ -112,3 +112,17 @@
 
 - 症状: Bash ツールで `cd` した後、次のコマンドが別のフォルダで実行される（`pnpm --filter ...` が失敗する）
 - 対処: コマンドの先頭で `Set-Location "<リポジトリのルート>"` を実行するか、絶対パスを使う
+
+### 保存のたびに ESLint が「使っていない import」を消してしまう
+
+- 症状: 先に `import { foo } from '...'` だけを足して保存すると、その import が消える（次に `foo` を使うコードを足すと「`foo` が定義されていない」エラーになる）
+- 原因: 保存時の hook（`format.mjs`）が `eslint --fix` を実行し、**使われていない import を自動で削除**する
+- 対処: **使うコードを先に書いてから、import を足す**（または、使うコードと import を 1 回の編集で一緒に書く）。型エラー `Cannot find name 'xxx'` が出たら、import が消えていないか疑う
+
+### Actions のワークフローを、ローカルで動作確認する方法
+
+- GitHub の Actions 自体は、GitHub 上でしか動かせない。ローカルでは次を確認できる
+  1. YAML の構文（`yaml` パッケージで読み込む）と、`needs` / `outputs` / `steps.<id>` の参照先が存在するか
+  2. 各 `run` ブロックの bash の構文（`bash -n`）
+  3. ログ出力だけで完結するステップは、環境変数（`GITHUB_RUN_ID` `GITHUB_STEP_SUMMARY` `GITHUB_OUTPUT` など）を模擬して、実際に実行できる
+- ESLint の YAML 規則は「引用符なしの書き方（plain scalar）」を求める。`eslint --fix` で直す（Prettier と衝突しないことを確認済み）

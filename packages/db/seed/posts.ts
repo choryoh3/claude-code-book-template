@@ -4,14 +4,10 @@ import type { Insertable } from 'kysely'
 import type { Hashtags, PostHashtags, Posts } from '../src/generated/db'
 import type { Random } from './random'
 import type { SeedPost, SeedUser } from './types'
+// 文字数の上限とハッシュタグの取り出し方は、アプリ本体と同じもの（packages/shared）を使う
+import { extractHashtags, MAX_POST_LENGTH } from '@xclone/shared'
 import { addHours, addMinutes, daysBefore, earlier } from './clock'
 import { stableUuid } from './random'
-
-/** 投稿の最大文字数（本来は packages/shared の定数。Phase 2 で shared ができたらそちらを参照する） */
-const MAX_POST_LENGTH = 280
-
-/** 「#タグ」を取り出す正規表現。日本語のタグも拾う */
-const HASHTAG_PATTERN = /#([\p{L}\p{N}_]+)/gu
 
 // ---------------------------------------------------------------- 投稿の材料（文章の部品）
 const TOPICS = [
@@ -282,10 +278,7 @@ function buildHashtags(posts: SeedPost[]) {
   const postHashtagRows: Insertable<PostHashtags>[] = []
 
   for (const post of posts) {
-    const tags = new Set(
-      Array.from(post.content.matchAll(HASHTAG_PATTERN), (match) => (match[1] ?? '').toLowerCase()),
-    )
-    for (const tag of tags) {
+    for (const tag of extractHashtags(post.content)) {
       if (!firstUsedAt.has(tag)) firstUsedAt.set(tag, post.createdAt)
       postHashtagRows.push({
         post_id: post.id,

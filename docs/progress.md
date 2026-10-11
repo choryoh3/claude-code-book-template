@@ -15,6 +15,23 @@
 
 ---
 
+## 2026-10-11 Phase 2（P2-1〜P2-4）shared と ui ／ GitHub Actions の作り替え
+
+- やったこと:
+  - `packages/shared`: 定数・日本語メッセージ・エラーコード・Zod スキーマ（認証・ユーザー・投稿・通知・通報・検索・管理）・DTO 型・Socket.IO のイベント型・本文解析（ハッシュタグ・メンション）。テスト 35 件
+  - `packages/ui`: `cn()`・Button（バリアント・処理中）・Avatar（頭文字の代替表示）・Dialog（Radix Vue）。テスト 22 件。Tailwind を実際にビルドし、トークンと部品のクラスが生成されることを確認
+  - `packages/db/src/contract.ts`: DB の列挙型と shared の定数の一致を型で保証（わざと食い違わせて検出できることを確認）。seed も shared の定数・関数を使うよう変更（seed の結果は完全に同一であることを確認）
+  - GitHub Actions（`hello.yml`）を「🎮 XClone Arcade」に作り替え: 本物のチェック（整形・lint・型・テスト）に、おみくじ・リポジトリのレベル・花火/スロットのフィナーレを追加（Summary に Mermaid の円グラフも出す）
+- 判断とその理由（詳細は ADR 0008）:
+  - shared / ui は **ビルドせず TypeScript のソースを直接共有**（アプリの Vite / tsx がそのまま読める）
+  - `lucide-vue-next` は npm 上で非推奨のため **`@lucide/vue`** を採用。`radix-vue` は指定どおり（後継の `reka-ui` への移行条件を ADR に記録）
+  - 管理画面の一覧は **ページ番号方式**、ユーザー向けは **cursor 方式**（用途が違うため）
+- 確認したこと: `pnpm check`（型・lint・テスト）、Prettier、ワークフローの YAML と bash の構文・各ステップのローカル実行（Actions 自体は GitHub 上での実行が必要）
+- 次の一手: Phase 3（`user/server`）。着手前にユーザーの承認を得る。Phase 3 から DB を使うテストが増えるので、CI に PostgreSQL サービスを足す
+- 既知の課題・注意点:
+  - Actions の実際の動作は、push して GitHub 上で確認する（ローカルでは構文と各ステップの実行までしか確認できない）
+  - ESLint の自動修正（保存時）は「まだ使っていない import」を消す。import を足すときは、**使うコードを先に書いてから**足す（`docs/troubleshooting.md`）
+
 ## 2026-10-11 Phase 1（P1-1〜P1-6）DB・マイグレーション・テストデータ
 
 - やったこと:

@@ -38,13 +38,14 @@ AI が自走で開発を進めるための **タスク台帳** です。`/next` 
 - [x] P1-5 `seed.ts`（`docs/test-data.md` の仕様どおり。同じ基準日なら 2 回の実行結果が完全に一致することを確認）
 - [x] P1-6 `pnpm db:reset`（リセット + seed）と docs の更新
 
-## Phase 2: shared と ui
+## Phase 2: shared と ui ✅
 
 受け入れ条件: `pnpm typecheck` が通る。
 
-- [ ] P2-1 `packages/shared`: 定数・Zod スキーマ・DTO 型・Socket.IO イベント型
-- [ ] P2-2 `packages/ui`: tokens.css（作成済み）・Tailwind 設定・`cn()` / `cva()`
-- [ ] P2-3 共通コンポーネント: Button / Avatar / Dialog（Radix Vue）
+- [x] P2-1 `packages/shared`: 定数・Zod スキーマ・DTO 型・Socket.IO イベント型・エラー定義・本文解析。テスト 35 件
+- [x] P2-2 `packages/ui`: tokens.css・Tailwind のビルド確認・`cn()` / `cva()`
+- [x] P2-3 共通コンポーネント: Button / Avatar / Dialog（Radix Vue）。テスト 22 件
+- [x] P2-4 DB の列挙型と shared の定数の一致を型で保証（`packages/db/src/contract.ts`）
 
 ## Phase 3: user/server
 
@@ -97,7 +98,7 @@ AI が自走で開発を進めるための **タスク台帳** です。`/next` 
 
 受け入れ条件: CI が green。
 
-- [ ] P7-1 CI（GitHub Actions: lint / typecheck / test）。既存の `hello.yml` を置き換える
+- [x] P7-1 CI（GitHub Actions: lint / typecheck / test）。`hello.yml` を「XClone Arcade」（本物のチェック + おみくじ・ステータス・花火の遊び心）に作り替え済み。残り: DB を使うテスト（Phase 3 以降）を CI で動かすための PostgreSQL サービスの追加
 - [ ] P7-2 README・ADR の整理、CLAUDE.md が 100 行以内か再確認
 - [ ] P7-3 画面仕様書（Excel）を実画面のキャプチャ付きで再生成（`/screen-spec`）
 

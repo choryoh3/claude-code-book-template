@@ -3,6 +3,8 @@
 import type { Insertable } from 'kysely'
 import type { Notifications, NotificationType } from '../src/generated/db'
 import type { SeedEvent, SeedPost, SeedUser } from './types'
+// メンションの取り出し方は、アプリ本体と同じもの（packages/shared）を使う
+import { extractMentions } from '@xclone/shared'
 import { stableUuid } from './random'
 
 /** 受信者ごとに残す通知の件数。alice は一覧・無限スクロール・未読バッジの確認用に多めにする */
@@ -11,8 +13,6 @@ const KEEP_DEFAULT = 2
 /** 受信者ごとの未読件数（新しいほうから数える） */
 const UNREAD_PER_RECIPIENT: Record<string, number> = { alice: 8, bob: 3, carol: 3 }
 const UNREAD_DEFAULT = 1
-
-const MENTION_PATTERN = /@(\w{3,15})/g
 
 /** 通知になる前の「候補」 */
 interface Candidate {
@@ -70,8 +70,8 @@ export function buildNotifications(
       })
     }
 
-    for (const match of post.content.matchAll(MENTION_PATTERN)) {
-      const mentioned = userByHandle.get(match[1] ?? '')
+    for (const handle of extractMentions(post.content)) {
+      const mentioned = userByHandle.get(handle)
       // リプライ先の人には「リプライ」の通知が行くので、メンションの通知は重ねない
       if (!mentioned || mentioned.id === parent?.authorId) continue
       candidates.push({

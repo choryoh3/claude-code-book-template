@@ -5,6 +5,9 @@
  */
 @import 'tailwindcss';
 
+/* このパッケージの部品（components/）で使っている Tailwind のクラスも、アプリ側のビルドで生成されるようにする */
+@source './components';
+
 @theme {
   --color-surface: var(--surface);
   --color-surface-hover: var(--surface-hover);

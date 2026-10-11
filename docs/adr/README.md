@@ -12,6 +12,7 @@
 | [0005](./0005-tailwind-v4-and-design-tokens.md)    | Tailwind CSS v4 + デザイントークン                      | 採用       |
 | [0006](./0006-claude-code-operating-foundation.md) | Claude Code の運用基盤                                  | 採用       |
 | [0007](./0007-toolchain-version-pins.md)           | ツールのバージョン固定                                  | 採用       |
+| [0008](./0008-shared-and-ui-package-choices.md)    | shared と ui の設計と、ライブラリの選び方               | 採用       |
 
 ## ルール
 

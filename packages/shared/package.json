@@ -1,0 +1,20 @@
+{
+  "name": "@xclone/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "画面（client）とサーバー（server）が共有する API 契約（Zod スキーマ・型・定数・Socket.IO イベント）",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.3"
+  }
+}
