@@ -42,6 +42,28 @@
   - `.env.example` が AI の読み取り拒否の設定に巻き込まれて読めない（中身の更新は人の判断待ち。`docs/troubleshooting.md`）
   - API テストは 1 回 10 分前後かかる（この PC で別の作業と並行しているため。単独なら短くなる）
 
+## 2026-10-12 Phase 4（P4-1〜P4-7）user/client（Phase 3 と並行して、別の worktree で作成）
+
+- やったこと:
+  - `user/client`（`@xclone/user-client`）: Vite + Vue Router + Pinia、X の 3 カラムのレイアウト（スマホは下部タブバー）
+  - 画面: ログイン・登録・ホーム（おすすめ / フォロー中）・投稿詳細・プロフィール・フォロー一覧・通知・検索・ブックマーク
+  - ダイアログ: 投稿（引用）・通報・プロフィール編集・確認（「削除しますか？」）
+  - 認証: access token はメモリだけ、401 で refresh を 1 回だけ再試行（同時の refresh は 1 回にまとめる）、起動時に Cookie から復元
+  - 通知: Socket.IO でリアルタイム受信、未読バッジ（99+）、再接続時に未読件数を取り直す
+  - 単体テスト 64 件（API の土台・auth store・ルーターのガード・一覧・楽観的更新・投稿カード・投稿フォーム・本文のリンク化など）
+- 判断とその理由:
+  - 本文の表示は .vue のテンプレートではなく **描画関数**（`PostContent.ts`）。改行をそのまま表示する本文で、整形ツールがタグの中に足した改行が「余計な空白」として画面に出たため
+  - ESLint の **Vue テンプレートの書式の規則を無効化**（`eslint.config.mjs` の `xclone/vue-template-formatting`）。Prettier と書き換え合ううえ、上の空白の不具合の原因になったため（見た目の整形は Prettier に一本化する既存方針どおり）
+  - ブラウザ標準の `confirm()` は使わず、自前の確認ダイアログ（`stores/confirm.ts`）にした（見た目を画面に合わせる・ESLint の no-alert）
+  - `POST /media` と `POST /reports` の応答のスキーマは、作業開始時の shared に無かったため `api/pending-contracts.ts` に仮に置いた（Phase 3 と統合したら shared のものに置き換えて削除する）→ **統合時に置き換えて削除済み**（`mediaUploadDtoSchema` / `reportCreatedDtoSchema` は shared から import）
+- 次の一手: Phase 3 と統合する（pending-contracts の置き換え、`pnpm-lock.yaml` の再生成）→ 実際の API と繋いで動作確認 → P4-8 の E2E
+- 既知の課題・注意点:
+  - **実際の API と繋いだ動作は未確認**（API は fetch のモックでテストしている）
+  - フォロー一覧・ユーザー検索の行には「フォローする」ボタンが無い（`UserSummaryDto` に「フォロー中か」が無いため）
+  - ホームの「新着 N 件を表示」のピル（画面仕様書 U-03）は未実装（新着を知らせる API・イベントが無いため）
+  - 右サイドバーの「おすすめユーザー」は未実装（API が無いため）
+  - 本番ビルドの最大のチャンクが約 200KB（shared の Zod スキーマを含む）。必要になったら分割を検討する
+
 ## 2026-10-11 Phase 2（P2-1〜P2-4）shared と ui ／ GitHub Actions の作り替え
 
 - やったこと:
