@@ -1,16 +1,369 @@
-name: Hello World
+# 🎮 XClone Arcade — 「見て楽しい」GitHub Actions
+#
+# push するたびに、ゲームのようにステージが進みます。
+#   🚀 スタート → ┌ 🧪 チェック（本物の CI: 整形・lint・型・テスト）
+#                 ├ 🥠 おみくじ（今日の運勢）
+#                 └ 📊 ステータス（このリポジトリのレベルと内訳）→ 🎆 フィナーレ
+#
+# 見どころ:
+#   - Actions タブの「Summary」に、メダル・おみくじ・円グラフ（Mermaid）・レベルが出ます
+#   - ログには色つきのバナー、カウントダウン、花火（またはスロット）が出ます
+#   - 「Run workflow」ボタンからテーマ（🎆 花火 / 🎰 スロット / 🥠 おみくじ）を選べます
+#
+# ⚠ チェック（lint・型・テスト）は本物です。失敗すると「💥 ゲームオーバー」になります。
+# 安全のため、コミットメッセージや名前などの外部の文字列は、スクリプトに直接埋め込まず環境変数で渡しています。
+
+name: 🎮 XClone Arcade
+
+run-name: '🎮 ${{ github.actor }} がステージ #${{ github.run_number }} に挑戦中（${{ github.event_name }}）'
 
 on:
   push:
     branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      theme:
+        description: 🎪 フィナーレのテーマを選ぼう
+        type: choice
+        default: 🎆 花火
+        options:
+          - 🎆 花火
+          - 🎰 スロット
+          - 🥠 おみくじ
+
+permissions:
+  contents: read
+
+# 同じ場所で連続して push したら、古い実行は止めて最新だけ遊ぶ
+concurrency:
+  group: arcade-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HUSKY: '0' # CI では Git の pre-commit を動かさない
+  FORCE_COLOR: '1' # ログを色つきにする
 
 jobs:
-  hello:
+  # ---------------------------------------------------------------- 🚀 スタート
+  start:
+    name: 🚀 ゲームスタート
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     steps:
-      - name: Checkout Repository
+      - name: 🎬 オープニング
+        env:
+          ACTOR: ${{ github.actor }}
+          EVENT: ${{ github.event_name }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          CYAN=$'\e[1;36m'; YELLOW=$'\e[1;33m'; PINK=$'\e[1;35m'; OFF=$'\e[0m'
+          echo "${CYAN}"
+          cat <<'BANNER'
+           __  __   ____ _                    _                  _
+           \ \/ /  / ___| | ___  _ __   ___  / \   _ __ ___ __ _  __| | ___
+            \  /  | |   | |/ _ \| '_ \ / _ \/ _ \ | '__/ __/ _` |/ _` |/ _ \
+            /  \  | |___| | (_) | | | |  __/ ___ \| | | (_| (_| | (_| |  __/
+           /_/\_\  \____|_|\___/|_| |_|\___/_/   \_\_|  \___\__,_|\__,_|\___|
+          BANNER
+          echo "${OFF}"
+          echo "${YELLOW}プレイヤー: ${ACTOR}   ステージ: #${RUN_NUMBER}   きっかけ: ${EVENT}${OFF}"
+          echo
+          for count in 3 2 1; do
+            echo "${PINK}  ... ${count} ...${OFF}"
+            sleep 1
+          done
+          echo "${CYAN}  🎮 GAME START!!${OFF}"
+          {
+            echo "# 🎮 XClone Arcade — ステージ #${RUN_NUMBER}"
+            echo
+            echo "**プレイヤー:** \`${ACTOR}\` ／ **きっかけ:** \`${EVENT}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------- 🧪 チェック（本物の CI）
+  checks:
+    name: 🧪 チェック（整形・lint・型・テスト）
+    needs: start
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 📥 リポジトリを取得
+        uses: actions/checkout@v5
+
+      - name: 🧰 pnpm を用意（バージョンは package.json の packageManager から）
+        uses: pnpm/action-setup@v4
+
+      - name: 🟢 Node.js を用意（バージョンは .nvmrc から）
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: 📦 依存パッケージをインストール
+        run: pnpm install --frozen-lockfile
+
+      - name: 🎨 ステージ 1 — 整形（Prettier）
+        id: format
+        continue-on-error: true
+        run: pnpm format:check
+
+      - name: 🔍 ステージ 2 — 文法チェック（ESLint）
+        id: lint
+        continue-on-error: true
+        run: pnpm lint
+
+      - name: 🧬 ステージ 3 — 型チェック（TypeScript）
+        id: typecheck
+        continue-on-error: true
+        run: pnpm typecheck
+
+      - name: 🧪 ステージ 4 — テスト（Vitest）
+        id: test
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          pnpm test 2>&1 | tee test.log
+
+      - name: 🏅 メダルを授与
+        if: always()
+        env:
+          FORMAT: ${{ steps.format.outcome }}
+          LINT: ${{ steps.lint.outcome }}
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          TEST: ${{ steps.test.outcome }}
+        run: |
+          medal() { if [ "$1" = "success" ]; then echo "🥇 クリア"; else echo "💥 ミス"; fi; }
+          {
+            echo
+            echo "## 🧪 チェック結果"
+            echo
+            echo "| ステージ | 結果 |"
+            echo "|---|---|"
+            echo "| 🎨 整形（Prettier） | $(medal "$FORMAT") |"
+            echo "| 🔍 文法（ESLint） | $(medal "$LINT") |"
+            echo "| 🧬 型（TypeScript） | $(medal "$TYPECHECK") |"
+            echo "| 🧪 テスト（Vitest） | $(medal "$TEST") |"
+            if [ -f test.log ]; then
+              echo
+              echo "<details><summary>🧪 テストのログ（クリックで開く）</summary>"
+              echo
+              echo '```'
+              tail -n 40 test.log | sed 's/\x1b\[[0-9;]*m//g'
+              echo '```'
+              echo "</details>"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 🚦 ゲームオーバー判定
+        if: always()
+        env:
+          RESULTS: ${{ steps.format.outcome }} ${{ steps.lint.outcome }} ${{ steps.typecheck.outcome }} ${{ steps.test.outcome }}
+        run: |
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              echo "::error title=💥 ゲームオーバー::どこかのステージでミスしました。上のログを見て直しましょう（よくある原因は docs/troubleshooting.md）"
+              exit 1
+            fi
+          done
+          echo "::notice title=🥇 全ステージクリア::整形・lint・型・テストがすべて通りました！"
+
+  # ---------------------------------------------------------------- 🥠 おみくじ
+  omikuji:
+    name: 🥠 今日の運勢（おみくじ）
+    needs: start
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      fortune: ${{ steps.draw.outputs.fortune }}
+    steps:
+      - name: 🥠 おみくじを引く
+        id: draw
+        run: |
+          # 実行番号を乱数の種にする（同じ実行なら同じ結果。実行のたびに運勢が変わる）
+          RANDOM=$GITHUB_RUN_ID
+          fortunes=("🎊 大吉" "🎊 大吉" "🌸 中吉" "🌸 中吉" "🍀 小吉" "🍀 小吉" "😌 吉" "😌 吉" "🌧️ 末吉" "⛈️ 凶")
+          items=("git status" "pnpm check" "/next" "pnpm db:seed" "docs/progress.md" "コーヒー ☕" "散歩 🚶")
+          colors=("🟦 青" "🟩 緑" "🟨 黄" "🟪 紫" "🟥 赤" "⬜ 白")
+          advice=(
+            "今日は lint が味方してくれそう。保存のたびに整います。"
+            "テストを 1 本だけ足すと、未来の自分が助かります。"
+            "迷ったら docs/adr に理由を書き残そう。後継者が喜びます。"
+            "コミットは小さく、こまめに。大きな変更ほど分けましょう。"
+            "エラーが出たら、まず requestId でログを追ってみよう。"
+            "休憩も開発のうち。水を飲んで、少し歩いてこよう。"
+          )
+          fortune=${fortunes[$((RANDOM % ${#fortunes[@]}))]}
+          item=${items[$((RANDOM % ${#items[@]}))]}
+          color=${colors[$((RANDOM % ${#colors[@]}))]}
+          tip=${advice[$((RANDOM % ${#advice[@]}))]}
+
+          echo "🥠 ${fortune}"
+          echo "   ラッキーアイテム: ${item}"
+          echo "   ラッキーカラー  : ${color}"
+          echo "   ひとこと        : ${tip}"
+
+          echo "fortune=${fortune}" >> "$GITHUB_OUTPUT"
+          {
+            echo
+            echo "## 🥠 今日の運勢"
+            echo
+            echo "> # ${fortune}"
+            echo
+            echo "| | |"
+            echo "|---|---|"
+            echo "| 🍀 ラッキーアイテム | \`${item}\` |"
+            echo "| 🎨 ラッキーカラー | ${color} |"
+            echo "| 💬 ひとこと | ${tip} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------- 📊 ステータス
+  stats:
+    name: 📊 リポジトリのステータス
+    needs: start
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      level: ${{ steps.status.outputs.level }}
+    steps:
+      - name: 📥 履歴ごと取得
         uses: actions/checkout@v5
         with:
-          fetch-depth: 1
-      - name: Run a script
-        run: echo "Hello, World!"
+          fetch-depth: 0
+
+      - name: 📊 レベルと内訳を計算
+        id: status
+        run: |
+          commits=$(git rev-list --count HEAD)
+          files=$(git ls-files | wc -l | tr -d ' ')
+          contributors=$(git shortlog -sn HEAD | wc -l | tr -d ' ')
+          code_lines=$(git ls-files '*.ts' '*.vue' '*.mjs' '*.sql' | xargs -r cat | wc -l | tr -d ' ')
+          latest=$(git log -1 --pretty=%s)
+
+          # コミット 5 回ごとに 1 レベルアップ
+          level=$(( commits / 5 + 1 ))
+          into_level=$(( commits % 5 ))
+          bar=""; for i in 1 2 3 4 5; do if [ "$i" -le "$into_level" ]; then bar="${bar}█"; else bar="${bar}░"; fi; done
+          if   [ "$level" -ge 10 ]; then title="🐉 ドラゴンマスター"
+          elif [ "$level" -ge 6 ];  then title="🦅 ベテラン開発者"
+          elif [ "$level" -ge 3 ];  then title="🛡️ 見習い騎士"
+          else title="🐣 ひよっこ冒険者"; fi
+
+          echo "🎖️  Lv.${level} ${title}"
+          echo "   経験値 [${bar}] ${into_level}/5"
+          echo "   コミット ${commits} / ファイル ${files} / コード ${code_lines} 行 / 仲間 ${contributors} 人"
+          echo "level=${level}" >> "$GITHUB_OUTPUT"
+
+          {
+            echo
+            echo "## 📊 リポジトリのステータス"
+            echo
+            echo "### 🎖️ Lv.${level} ${title}"
+            echo
+            echo "\`[${bar}]\` 次のレベルまで あと **$(( 5 - into_level ))** コミット"
+            echo
+            echo "| 項目 | 値 |"
+            echo "|---|---|"
+            echo "| 📝 コミット | ${commits} |"
+            echo "| 📁 ファイル | ${files} |"
+            echo "| 💻 コード（ts / vue / mjs / sql） | ${code_lines} 行 |"
+            echo "| 👥 仲間 | ${contributors} 人 |"
+            echo "| 🆕 最新のコミット | \`${latest//\`/}\` |"
+            echo
+            echo '```mermaid'
+            echo 'pie showData title 📁 ファイルの種類（上位 6）'
+            git ls-files | sed -E 's/.*\.([A-Za-z0-9]+)$/\1/' | sort | uniq -c | sort -rn | head -6 \
+              | while read -r count ext; do echo "    \"${ext}\" : ${count}"; done
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------- 🎆 フィナーレ
+  finale:
+    name: 🎆 フィナーレ
+    needs: [checks, omikuji, stats]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: 🎪 結果を発表
+        env:
+          THEME: ${{ inputs.theme }}
+          CHECKS: ${{ needs.checks.result }}
+          FORTUNE: ${{ needs.omikuji.outputs.fortune }}
+          LEVEL: ${{ needs.stats.outputs.level }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          RED=$'\e[1;31m'; GREEN=$'\e[1;32m'; YELLOW=$'\e[1;33m'; BLUE=$'\e[1;34m'; PINK=$'\e[1;35m'; CYAN=$'\e[1;36m'; OFF=$'\e[0m'
+
+          # チェックが失敗していたらゲームオーバー
+          if [ "$CHECKS" != "success" ]; then
+            echo "${RED}"
+            cat <<'OVER'
+             ____    _    __  __ _____    _____     _______ ____
+            / ___|  / \  |  \/  | ____|  / _ \ \   / / ____|  _ \
+           | |  _  / _ \ | |\/| |  _|   | | | \ \ / /|  _| | |_) |
+           | |_| |/ ___ \| |  | | |___  | |_| |\ V / | |___|  _ <
+            \____/_/   \_\_|  |_|_____|  \___/  \_/  |_____|_| \_\
+          OVER
+            echo "${OFF}"
+            echo "💥 チェックでミスしました。でも大丈夫、直してもう一度挑戦しよう！"
+            {
+              echo
+              echo "## 💥 ゲームオーバー"
+              echo
+              echo "チェックのどこかで失敗しました。ログを開いて原因を探しましょう。"
+              echo "よくある原因と対処は [docs/troubleshooting.md](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/blob/main/docs/troubleshooting.md) にまとめてあります。"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # テーマ（手動実行で選べる。選ばなかったら、ステージ番号で自動的に決まる）
+          if [ -z "$THEME" ]; then
+            themes=("🎆 花火" "🎰 スロット" "🥠 おみくじ")
+            THEME=${themes[$((RUN_NUMBER % 3))]}
+          fi
+          echo "${YELLOW}🎪 今回のテーマ: ${THEME}${OFF}"
+          echo
+
+          case "$THEME" in
+            *花火*)
+              colors=("$RED" "$YELLOW" "$GREEN" "$BLUE" "$PINK" "$CYAN")
+              for i in 1 2 3 4 5 6; do
+                c=${colors[$((i - 1))]}
+                printf '%s\n' "${c}        .  *  .        ${OFF}" "${c}     *  .  ✦  .  *     ${OFF}" "${c}        '  |  '        ${OFF}"
+                echo
+                sleep 0.4
+              done
+              ;;
+            *スロット*)
+              reels=("🍒" "🍋" "🔔" "⭐" "7️⃣")
+              RANDOM=$RUN_NUMBER
+              for spin in 1 2 3 4 5; do
+                printf '  [ %s | %s | %s ]\n' "${reels[$((RANDOM % 5))]}" "${reels[$((RANDOM % 5))]}" "${reels[$((RANDOM % 5))]}"
+                sleep 0.3
+              done
+              a=${reels[$((RANDOM % 5))]}; b=${reels[$((RANDOM % 5))]}; c=${reels[$((RANDOM % 5))]}
+              echo "${YELLOW}  [ ${a} | ${b} | ${c} ]  ← 結果${OFF}"
+              if [ "$a" = "$b" ] && [ "$b" = "$c" ]; then echo "${PINK}  🎉 JACKPOT!!! 🎉${OFF}"; else echo "  惜しい！次のステージで揃えよう"; fi
+              ;;
+            *)
+              echo "${PINK}  🥠 ${FORTUNE}${OFF}"
+              echo "  （おみくじの詳細は Summary に出ています）"
+              ;;
+          esac
+
+          echo
+          echo "${GREEN}🏆 ステージ #${RUN_NUMBER} クリア！ Lv.${LEVEL}${OFF}"
+          echo "::notice title=🏆 ステージクリア！::${FORTUNE} ／ Lv.${LEVEL} ／ テーマ: ${THEME}"
+
+          {
+            echo
+            echo "## 🎆 フィナーレ"
+            echo
+            echo "# 🏆 ステージ #${RUN_NUMBER} クリア！"
+            echo
+            echo "| 🎪 テーマ | 🥠 運勢 | 🎖️ レベル |"
+            echo "|---|---|---|"
+            echo "| ${THEME} | ${FORTUNE} | Lv.${LEVEL} |"
+            echo
+            echo "次のステージへ進むには、また push しよう 🚀"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -9,5 +9,4 @@ packages/db/src/generated
 playwright-report
 test-results
 docs/architecture/*.html
-.github/workflows/hello.yml
 docs/notes
