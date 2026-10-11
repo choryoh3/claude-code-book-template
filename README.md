@@ -28,13 +28,13 @@ X（旧 Twitter）の主要機能を再現した SNS です。**一般ユーザ�
 
 ## 1. いまの状況
 
-開発は **Phase（段階）** に分けて進めます。現在は **Phase 0（運用基盤）が完了** した段階で、アプリ本体（画面・API・DB）は **まだ実装していません**。
+開発は **Phase（段階）** に分けて進めます。現在は **Phase 0（運用基盤）と Phase 1（DB・テストデータ）が完了** した段階です。DB（テーブル・インデックス・テストデータ）はできていますが、**画面と API（Phase 2 以降）はまだ実装していません**。
 
 | Phase | 内容                                                                              | 状態    |
 | ----- | --------------------------------------------------------------------------------- | ------- |
 | **0** | 運用基盤（CLAUDE.md・rules・skills・commands・agents・hooks・MCP・VS Code・docs） | ✅ 完了 |
-| 1     | モノレポ骨格、DB（SQL マイグレーション）、テストデータ                            | ⏳ 次   |
-| 2     | 共通パッケージ（shared / ui）                                                     | ⏳      |
+| **1** | DB（SQL マイグレーション 13 テーブル・Kysely・テストデータ）                      | ✅ 完了 |
+| 2     | 共通パッケージ（shared / ui）                                                     | ⏳ 次   |
 | 3     | user/server（認証・投稿・フォロー・タイムライン・通知・検索）                     | ⏳      |
 | 4     | user/client（X のレイアウトの画面）                                               | ⏳      |
 | 5     | admin/server（管理者認証・RBAC・管理操作・監査ログ）                              | ⏳      |
@@ -96,7 +96,9 @@ flowchart LR
 - `user` と `admin` は **互いに呼び合いません**。つながるのは「同じ DB」だけです（権限の境界を守るため。→ [ADR 0001](docs/adr/0001-monorepo-and-app-separation.md)）
 - 画面と API の **約束事（型・入力ルール）は `shared` に 1 つだけ** 置き、両側が同じものを使います（食い違いによるバグを防ぐため）
 
-### 2-2. データモデル（予定。Phase 1 で確定）
+### 2-2. データモデル（Phase 1 で実装済み）
+
+主なテーブルと関係の概要です。全 13 テーブルの一覧・制約・インデックスは [`docs/db-schema.md`](docs/db-schema.md) にあります（正は `packages/db/migrations/*.sql`）。
 
 ```mermaid
 erDiagram
@@ -131,7 +133,7 @@ erDiagram
     text content "280文字まで"
     uuid reply_to_id FK
     uuid quote_of_id FK
-    timestamptz deleted_at
+    text status "表示中・非表示・削除済み"
   }
   follows {
     uuid follower_id PK
@@ -140,7 +142,7 @@ erDiagram
   notifications {
     uuid id PK
     uuid recipient_id FK
-    text type "いいね・リポスト・フォロー・リプライ・メンション"
+    text type "いいね・リポスト・フォロー・リプライ・メンション・引用"
     boolean is_read
   }
   reports {
@@ -231,18 +233,18 @@ flowchart TD
 
 ### 3-0. 今どこまで動くか（重要）
 
-アプリ本体は Phase 1〜6 で作るため、**現時点では `pnpm dev` を実行してもアプリは起動しません**（起動対象がまだ無いため）。
+**DB（テーブルとテストデータ）までは今すぐ動きます**（Phase 1 完了）。一方、画面と API は Phase 2〜6 で作るため、**現時点では `pnpm dev` を実行してもアプリは起動しません**（起動対象がまだ無いため）。
 下の表のとおり、手順は **完成後と同じもの** を先に書いています。Phase が進むごとに動く範囲が増えます。
 
-| 手順                                          | 今すぐ動く | 動き始める Phase |
-| --------------------------------------------- | ---------- | ---------------- |
-| 3-1 前提ツールの確認                          | ✅         | -                |
-| 3-2 依存のインストール                        | ✅         | -                |
-| 3-3 環境変数                                  | ✅         | -                |
-| 3-4 DB の起動（空の PostgreSQL）              | ✅         | -                |
-| 3-5 マイグレーションとテストデータ            | ⏳         | Phase 1          |
-| 3-6 アプリの起動                              | ⏳         | Phase 3〜6       |
-| 画面仕様書（Excel）の生成 `pnpm spec:screens` | ✅         | -                |
+| 手順                                          | 今すぐ動く | 動き始める Phase  |
+| --------------------------------------------- | ---------- | ----------------- |
+| 3-1 前提ツールの確認                          | ✅         | -                 |
+| 3-2 依存のインストール                        | ✅         | -                 |
+| 3-3 環境変数                                  | ✅         | -                 |
+| 3-4 DB の起動（空の PostgreSQL）              | ✅         | -                 |
+| 3-5 マイグレーションとテストデータ            | ✅         | -（Phase 1 完了） |
+| 3-6 アプリの起動                              | ⏳         | Phase 3〜6        |
+| 画面仕様書（Excel）の生成 `pnpm spec:screens` | ✅         | -                 |
 
 ### 3-1. 前提ツールを確認する
 
@@ -282,30 +284,64 @@ Copy-Item .env.example .env
 
 ### 3-4. データベース（PostgreSQL）を起動する
 
-**方法 A: Docker を使う（おすすめ）**
+PostgreSQL 16 以上が必要です。どちらか 1 つの方法で用意してください。
+
+**方法 A: すでにあるローカルの PostgreSQL を使う（この PC で動作確認済み: PostgreSQL 17）**
 
 ```powershell
-docker compose up -d      # PostgreSQL を起動（ユーザー postgres / パスワード test999 / DB xclone）
+# psql が PATH に無い場合は、フルパスで実行します（バージョンの数字は環境に合わせる）
+$psql = "C:\Program Files\PostgreSQL\17\bin\psql.exe"
+$env:PGPASSWORD = "test999"      # このターミナルでだけ有効（パスワードの入力を省略するため）
+
+& $psql -h localhost -U postgres -c "SELECT version();"         # 接続できることを確認
+& $psql -h localhost -U postgres -c "CREATE DATABASE xclone;"   # DB を作成（すでにあるとエラーになるが問題なし）
+```
+
+**方法 B: Docker を使う（Docker がある場合。※この PC には Docker が無いため動作は未確認）**
+
+```powershell
+docker compose up -d      # PostgreSQL 16 を起動（ユーザー postgres / パスワード test999 / DB xclone）
 docker compose ps         # State が running であることを確認
 ```
 
-**方法 B: すでにあるローカルの PostgreSQL を使う**
+接続先は環境変数 `DATABASE_URL` で決まります（既定: `postgresql://postgres:test999@localhost:5432/xclone`）。`.env` が無くても、この既定値で動きます。
+
+### 3-5. テーブルとテストデータを作る（Phase 1 完了済み・動作確認済み）
 
 ```powershell
-psql -U postgres -c "CREATE DATABASE xclone;"
+pnpm db:migrate     # SQL マイグレーションを適用して、13 個のテーブルを作る
+pnpm db:seed        # 動作確認用のテストデータを入れる（既存データは全て消えて入れ直し）
 ```
 
-接続先は `.env` の `DATABASE_URL`（既定: `postgresql://postgres:test999@localhost:5432/xclone`）です。
+成功すると、次のように件数が表示されます。
 
-### 3-5. テーブルとテストデータを作る（Phase 1 以降）
+```
+投入しました:
+  users                   32 件
+  posts                  200 件
+  notifications          110 件
+  ...
+```
+
+**中身を確認する**（テストデータが入ったか見たいとき）
 
 ```powershell
-pnpm db:migrate     # SQL マイグレーションを適用してテーブルを作る
-pnpm db:seed        # 動作確認用のテストデータを入れる
+& $psql -h localhost -U postgres -d xclone -c "SELECT handle, role, is_suspended FROM users ORDER BY created_at LIMIT 8;"
+& $psql -h localhost -U postgres -d xclone -c "SELECT status, count(*) FROM posts GROUP BY status;"
 ```
 
-やり直したいときは、Claude Code で `/db-reset`（確認つき）を使います（手で `pnpm db:reset` を直接実行することは hooks がブロックします）。
-入る内容とログイン情報は [`docs/test-data.md`](docs/test-data.md) です。
+VS Code の拡張機能「PostgreSQL」（`ckolkman.vscode-postgres`）からも、画面で確認できます（接続: localhost / postgres / test999 / xclone）。
+
+**よく使う操作**
+
+| やりたいこと                                   | コマンド                                                                                                 |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 型を最新にする（マイグレーションを足したあと） | `pnpm db:codegen`                                                                                        |
+| 直近 1 件のマイグレーションを取り消す          | `pnpm --filter "@xclone/db" migrate:down`                                                                |
+| 全部消して作り直す（⚠ 全データが消える）       | Claude Code で **`/db-reset`**（確認つき）。手で `pnpm db:reset` を実行することは hooks がブロックします |
+| 毎回同じ日付のデータにしたい（E2E など）       | `$env:SEED_BASE_DATE = "2026-10-11"; pnpm db:seed`                                                       |
+
+入る内容とログイン情報は [`docs/test-data.md`](docs/test-data.md)、テーブルの一覧は [`docs/db-schema.md`](docs/db-schema.md) です。
 
 ### 3-6. アプリを起動する（Phase 3〜6 以降）
 
@@ -818,8 +854,8 @@ Kysely は SQL とほぼ同じ書き方で型もつくため、速さと安全�
 
 ### 次の一手
 
-Phase 1（`packages/db`）: Kysely 接続、SQL マイグレーション（users / posts / follows / likes / reposts / bookmarks / notifications / reports / audit_logs / hashtags / refresh_tokens）、`seed.ts`。
-Claude Code で **`/next`** と入力すれば進められます（着手前にユーザーの承認を取る約束です）。
+Phase 2（`packages/shared` と `packages/ui`）: 定数・Zod スキーマ・DTO 型・Socket.IO のイベント型、デザイントークン（作成済み）・`cn()` / `cva()`・Button / Avatar / Dialog。
+Claude Code で **`/next`** と入力すれば進められます（Phase の切り替わりでは、着手前にユーザーの承認を取る約束です）。
 
 ### 将来の機能（バックログ）
 

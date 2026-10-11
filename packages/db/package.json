@@ -1,0 +1,31 @@
+{
+  "name": "@xclone/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "PostgreSQL への接続（Kysely）、SQL マイグレーション、テストデータ（seed）",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "migrate": "tsx src/cli/migrate.ts up",
+    "migrate:down": "tsx src/cli/migrate.ts down",
+    "codegen": "tsx src/cli/codegen.ts",
+    "seed": "tsx src/cli/seed.ts",
+    "reset": "tsx src/cli/reset.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "kysely": "^0.29.6",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
+    "bcrypt": "^6.0.0",
+    "kysely-codegen": "^0.20.0",
+    "node-pg-migrate": "^9.0.0",
+    "tsx": "^4.23.15"
+  }
+}

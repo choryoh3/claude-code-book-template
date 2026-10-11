@@ -27,16 +27,16 @@ AI が自走で開発を進めるための **タスク台帳** です。`/next` 
 - [x] P0-8 VS Code 設定・各種設定ファイル
 - [x] P0-9 docs（ADR・ロードマップ・テストデータ仕様・トラブルシュート）・README
 
-## Phase 1: モノレポ骨格と DB
+## Phase 1: モノレポ骨格と DB ✅
 
 受け入れ条件: `pnpm db:migrate && pnpm db:seed` が成功し、SQL クライアントで中身を確認できる。
 
-- [ ] P1-1 `packages/db` の package.json、Kysely 接続（`src/index.ts`）、node-pg-migrate、kysely-codegen の設定
-- [ ] P1-2 マイグレーション: users / posts / follows / likes / reposts / bookmarks / notifications / reports / audit_logs / hashtags(+post_hashtags) / refresh_tokens
-- [ ] P1-3 インデックス設計（タイムライン・通知・検索・集計）と `EXPLAIN` での確認
-- [ ] P1-4 `pnpm db:codegen` で型を生成しコミット
-- [ ] P1-5 `seed.ts`（`docs/test-data.md` の仕様どおり。再実行しても同じ結果になること）
-- [ ] P1-6 `pnpm db:reset`（リセット + seed）と docs の更新
+- [x] P1-1 `packages/db` の package.json、Kysely 接続（`src/index.ts`）、node-pg-migrate、kysely-codegen の設定
+- [x] P1-2 マイグレーション 6 本（13 テーブル）: users / refresh_tokens / posts / hashtags / post_hashtags / follows / likes / reposts / bookmarks / notifications / reports / audit_logs / daily_active_users。Down も往復テスト済み
+- [x] P1-3 インデックス設計（タイムライン・通知・検索・集計）と `EXPLAIN` での確認（`docs/db-schema.md`）
+- [x] P1-4 `pnpm db:codegen` で型を生成しコミット
+- [x] P1-5 `seed.ts`（`docs/test-data.md` の仕様どおり。同じ基準日なら 2 回の実行結果が完全に一致することを確認）
+- [x] P1-6 `pnpm db:reset`（リセット + seed）と docs の更新
 
 ## Phase 2: shared と ui
 

@@ -1,0 +1,10 @@
+{
+  "dialect": "postgres",
+  "outFile": "src/generated/db.ts",
+  "excludePattern": "pgmigrations",
+  "overrides": {
+    "columns": {
+      "daily_active_users.active_date": "ColumnType<string, string, string>"
+    }
+  }
+}

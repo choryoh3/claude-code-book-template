@@ -35,12 +35,24 @@ export default antfu(
     },
   },
   {
+    // 理由: packages/db はサーバーではなく「マイグレーション・seed などの CLI ツール」なので、
+    // 進捗や結果を console に出すのが仕事。（サーバーのログは pino を使う: .claude/rules/observability.md）
+    name: 'xclone/db-cli-tools',
+    files: ['packages/db/**/*.ts'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
+  {
     // 理由: package.json / tsconfig のキー順は「意味のまとまり」を優先したいので強制しない。
     // pnpm-workspace.yaml の設定強制も、学習コストに見合わないため使わない。
     name: 'xclone/config-files',
     rules: {
       'jsonc/sort-keys': 'off',
       'pnpm/yaml-enforce-settings': 'off',
+      // 理由: 16 進数の大文字小文字は Prettier（小文字）と ESLint（大文字）が衝突し、
+      // 保存のたびに互いに書き換えてしまうため。見た目の整形は Prettier に一本化する
+      'unicorn/number-literal-case': 'off',
     },
   },
 )

@@ -64,3 +64,51 @@
 
 - 確認: `node .claude/hooks/notify-sound.mjs done` を手で実行して鳴るか確認する。環境変数 `CLAUDE_SOUND_OFF=1` が設定されていないか確認する
 - 設定の変更は新しいセッションで反映される
+
+## DB
+
+### seed の結果が実行のたびに変わる（再現性が崩れる）
+
+- 症状: 同じ基準日で `pnpm db:seed` を 2 回実行しても、全テーブルのダイジェストが一致しない
+- 原因: `updated_at` の既定値が `now()`（実行した時刻）で、seed が指定していなかった。古い投稿の更新日時が「実行時刻」になるのも不自然
+- 対処: seed が `updated_at` を明示する（投稿・通報・ユーザー）。確認は `SEED_BASE_DATE=2026-10-11` を固定して 2 回実行し、全テーブルの行を `md5(string_agg(...))` で比較する
+- 教訓: 既定値が `now()` の列は、seed で必ず明示する
+
+### ハンドル・メールの検索で一意インデックスが使われない
+
+- 症状: `WHERE handle = 'alice'` が一意インデックスではなくトライグラムのインデックスで検索される（件数が増えると遅い）
+- 原因: 一意インデックスは `lower(handle)` に張っている（大文字小文字を区別しないため）。`handle = ...` では使えない
+- 対処: 完全一致は `lower(handle) = lower($1)` と書く（`.claude/rules/db.md` に記載）
+
+### psql の日本語が文字化けする / psql が見つからない
+
+- 症状: PowerShell で `psql` を実行すると、メッセージが `�u�y�[�W...` のように化ける。または `psql` が見つからない
+- 原因: Windows の既定のコードページ（Shift_JIS）と、PostgreSQL のクライアント側の文字コードの不一致。`psql` は PATH に入っていないことがある
+- 対処: `$env:PGCLIENTENCODING = "UTF8"` を設定する。フルパス（`C:\Program Files\PostgreSQL\17\bin\psql.exe`）で実行する。SQL ファイルの結果が読めればデータ自体は正しい
+
+### Date 型（date 列）の日付がずれる / 型が合わない
+
+- 症状: `daily_active_users.active_date` が、実行環境のタイムゾーンによって 1 日ずれる、または型が `Date` なのに実際は文字列
+- 原因: `pg` ドライバは date 列を「サーバーのタイムゾーンの 0 時の Date」に変換する。また kysely-codegen は date 列を `Date` 型として生成する
+- 対処: `src/index.ts` で date を `'YYYY-MM-DD'` の文字列のまま扱う設定にし、`.kysely-codegenrc.json` の `overrides` で該当列の型を `string` に上書きした
+
+## Lint / 整形（追加）
+
+### Prettier と ESLint が 16 進数の大文字小文字で衝突する
+
+- 症状: `0x6d2b79f5` を Prettier が小文字に直し、ESLint（`unicorn/number-literal-case`）が「大文字にせよ」と指摘する。保存のたびに互いに書き換える
+- 原因: 2 つのツールの整形ルールの衝突
+- 対処: 整形は Prettier に一本化する方針なので、ESLint 側の `unicorn/number-literal-case` を無効にした（`eslint.config.mjs` に理由を記載）
+
+## Claude Code（追加）
+
+### `.env` の存在確認や読み取りがブロックされる
+
+- 症状: `Test-Path .env` などが「セキュリティのためブロックされた」と拒否される
+- 原因: AI が秘密情報を見ないよう、`.env` の読み取りを権限で拒否している（`.claude/settings.json` の `permissions.deny`）
+- 対処: 仕様どおり。接続先は環境変数 `DATABASE_URL`（無ければ開発用の既定値）で決まるので、`.env` が無くても動く。`.env` を作る・確認するのは人が行う
+
+### `cd` したあとにコマンドの作業ディレクトリが変わったままになる
+
+- 症状: Bash ツールで `cd` した後、次のコマンドが別のフォルダで実行される（`pnpm --filter ...` が失敗する）
+- 対処: コマンドの先頭で `Set-Location "<リポジトリのルート>"` を実行するか、絶対パスを使う
