@@ -1,0 +1,19 @@
+/*
+ * 画面全体のスタイルの入口。
+ * 色などのデザイントークンは packages/ui/src/tokens.css（ライト / ダークの切り替えもそちら）。
+ * ここには「全体に効く最小限の土台」だけを書く。部品ごとの見た目は各コンポーネントの class に書く。
+ */
+@import '@xclone/ui/tokens.css';
+
+html,
+body {
+  @apply bg-surface text-text;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', Meiryo,
+    sans-serif;
+  /* 色の切り替え（ダークモード）をなめらかにする */
+  transition: background-color 0.2s ease;
+}

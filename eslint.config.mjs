@@ -44,6 +44,24 @@ export default antfu(
     },
   },
   {
+    // 理由: .vue のテンプレートの見た目（改行・字下げ・自己終了タグ）は Prettier が整える。
+    // ESLint の同じ種類の規則を有効にすると、保存のたびに互いに書き換え合う。さらに
+    // 「タグの中身の前後に改行を足す」自動修正は、文字の前後に空白を生んで表示を変えてしまう
+    // （改行をそのまま表示する本文 = whitespace-pre-wrap で、ハッシュタグの前後に空白が出た）ため、無効にする。
+    name: 'xclone/vue-template-formatting',
+    files: ['**/*.vue'],
+    rules: {
+      'vue/html-indent': 'off',
+      'vue/html-self-closing': 'off',
+      'vue/html-closing-bracket-newline': 'off',
+      'vue/html-closing-bracket-spacing': 'off',
+      'vue/singleline-html-element-content-newline': 'off',
+      'vue/multiline-html-element-content-newline': 'off',
+      'vue/max-attributes-per-line': 'off',
+      'vue/first-attribute-linebreak': 'off',
+    },
+  },
+  {
     // 理由: package.json / tsconfig のキー順は「意味のまとまり」を優先したいので強制しない。
     // pnpm-workspace.yaml の設定強制も、学習コストに見合わないため使わない。
     name: 'xclone/config-files',

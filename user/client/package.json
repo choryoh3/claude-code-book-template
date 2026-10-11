@@ -1,0 +1,36 @@
+{
+  "name": "@xclone/user-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "一般ユーザー向けの画面（Vue 3 + Vite）",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@lucide/vue": "^1.55.0",
+    "@xclone/shared": "workspace:*",
+    "@xclone/ui": "workspace:*",
+    "pinia": "^4.0.3",
+    "socket.io-client": "^4.8.4",
+    "vue": "^3.5.43",
+    "vue-router": "^5.4.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.6.5",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "@vue/test-utils": "^2.5.1",
+    "happy-dom": "^20.14.6",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.3",
+    "vue-tsc": "^3.3.13"
+  }
+}
