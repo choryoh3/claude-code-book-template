@@ -1,4 +1,5 @@
 // 検索・トレンドに関する契約。
+
 import { z } from 'zod'
 import { SEARCH_QUERY_MAX_LENGTH } from '../constants'
 import { messages } from '../messages'

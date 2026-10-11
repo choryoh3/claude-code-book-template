@@ -1,5 +1,6 @@
 // seed のユーザー: 管理者 2 人、確認用の名前付き 5 人、ボリューム用の 25 人（合計 32 人）。
 // 一覧は docs/test-data.md と一致させること（変更したら両方を更新する）。
+
 import type { Insertable } from 'kysely'
 import type { Users } from '../src/generated/db'
 import type { Random } from './random'

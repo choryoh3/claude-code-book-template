@@ -1,4 +1,5 @@
 // seed 用の日時の基準。「今日」から何日前・何時間前、という相対的な日時を作る。
+
 import process from 'node:process'
 
 const MS_PER_MINUTE = 60 * 1000

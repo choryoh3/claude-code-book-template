@@ -1,5 +1,6 @@
 // seed のソーシャルな関係: フォロー、いいね、リポスト、ブックマーク。
 // 同時に「誰が何をしたか」の出来事（SeedEvent）も返す。通知（notifications.ts）の元になる。
+
 import type { Insertable } from 'kysely'
 import type { Bookmarks, Follows, Likes, Reposts } from '../src/generated/db'
 import type { Random } from './random'

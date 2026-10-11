@@ -1,5 +1,6 @@
 // seed の通知: 実際に起きた出来事（いいね・リポスト・フォロー・リプライ・引用・メンション）から作る。
 // 受信者ごとに「直近の N 件」だけを入れる（全件入れるとデータが膨らむため）。新しいものを未読にする。
+
 import type { Insertable } from 'kysely'
 import type { Notifications, NotificationType } from '../src/generated/db'
 import type { SeedEvent, SeedPost, SeedUser } from './types'

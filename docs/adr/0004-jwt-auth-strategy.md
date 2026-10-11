@@ -26,3 +26,10 @@
 
 - 良い点: XSS・トークン漏洩への耐性が高い。凍結の即時反映ができる（refresh の失効）
 - 注意点: CORS と Cookie の設定（`credentials`）を正しく行う。401 時は refresh を 1 回だけ試す（無限ループ防止）
+
+## 追記（2026-10-12、Phase 3 の実装で決めたこと）
+
+- **refresh token は JWT ではなく、推測できない乱数**（32 バイト）。DB にはハッシュだけを保存する。そのため refresh 用のシークレットは不要（`.env.example` の `JWT_REFRESH_SECRET` / `ADMIN_JWT_REFRESH_SECRET` は使わない）
+- **盗用の検知**: 交換済みの refresh token が再び使われたら、その人の token を全て失効させる
+- **同時の refresh の猶予（10 秒）**: 複数のタブが同時に再読み込みすると、同じ token で refresh が重なる。交換から 10 秒以内の再使用は盗用とみなさず、その要求だけを 401 にする（全端末のログアウトにしない）。コードレビューで指摘を受けて決めた
+- **凍結の即時反映**: access token の有効期間中でも、API と Socket.IO の操作のたびに DB で凍結を確認する

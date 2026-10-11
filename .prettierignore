@@ -10,3 +10,4 @@ playwright-report
 test-results
 docs/architecture/*.html
 docs/notes
+.claude/worktrees

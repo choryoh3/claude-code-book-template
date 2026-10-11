@@ -1,5 +1,6 @@
 // SQL マイグレーション（packages/db/migrations/*.sql）を適用・取り消す。
 // 実体は node-pg-migrate。どの SQL をどの順で実行済みかは、DB の pgmigrations テーブルが記録している。
+
 import { fileURLToPath } from 'node:url'
 import { runner } from 'node-pg-migrate'
 import { getDatabaseUrl } from './config'

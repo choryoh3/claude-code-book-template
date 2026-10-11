@@ -1,3 +1,5 @@
+// ページネーション・検索・管理画面の入力チェックのテスト。
+
 import { describe, expect, it } from 'vitest'
 import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX, STATS_PERIOD_DEFAULT } from '../constants'
 import { adminReasonSchema, statsQuerySchema } from './admin'

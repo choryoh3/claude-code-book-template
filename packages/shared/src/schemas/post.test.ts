@@ -1,9 +1,12 @@
+// 投稿の入力チェック（文字数・画像の枚数と URL・リプライと引用）のテスト。
+
 import { describe, expect, it } from 'vitest'
 import { MAX_POST_LENGTH, MAX_POST_MEDIA } from '../constants'
 import { messages } from '../messages'
 import { createPostSchema } from './post'
 
-const URL_SAMPLE = 'https://example.com/a.png'
+/** アップロードした画像の URL の形（POST /media が返す形） */
+const URL_SAMPLE = 'http://localhost:3000/uploads/0b1f6f0e-1c52-4a8d-9d3a-1f2b3c4d5e6f.png'
 const UUID_SAMPLE = '0b1f6f0e-1c52-4a8d-9d3a-1f2b3c4d5e6f'
 
 /** 失敗した検証から、エラーメッセージの一覧を取り出す */
@@ -45,7 +48,21 @@ describe('createPostSchema', () => {
   })
 
   it('画像の URL の形式が不正なら拒否する', () => {
-    expect(errorMessages({ content: 'a', mediaUrls: ['not-a-url'] })).toContain(messages.invalidUrl)
+    expect(errorMessages({ content: 'a', mediaUrls: ['not-a-url'] })).toContain(
+      messages.invalidMediaUrl,
+    )
+  })
+
+  it('アップロードした画像以外の URL（外部の画像・javascript:・data:）は拒否する', () => {
+    const rejected = [
+      'https://tracker.example.com/pixel.png',
+      'javascript:alert(1)',
+      'data:image/png;base64,AAAA',
+      'ftp://localhost/uploads/0b1f6f0e-1c52-4a8d-9d3a-1f2b3c4d5e6f.png',
+    ]
+    for (const url of rejected) {
+      expect(errorMessages({ content: 'a', mediaUrls: [url] })).toContain(messages.invalidMediaUrl)
+    }
   })
 
   it('リプライと引用を同時に指定することはできない', () => {

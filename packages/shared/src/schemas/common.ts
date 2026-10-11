@@ -1,4 +1,5 @@
 // 複数の機能で使う共通のスキーマ（ID・日時・ページネーション）。
+
 import { z } from 'zod'
 import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } from '../constants'
 

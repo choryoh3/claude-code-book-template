@@ -1,6 +1,7 @@
 // 管理者アプリ（admin/server・admin/client）の契約。
 // 管理者の変更操作は、操作と同一トランザクションで監査ログに記録される（.claude/rules/admin-security.md）。
 // 表は「◯ページ目へ移動」できる必要があるため、ページ番号方式（page / pageSize）を使う。
+
 import { z } from 'zod'
 import {
   ADMIN_REASON_MAX_LENGTH,

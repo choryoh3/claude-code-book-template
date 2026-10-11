@@ -1,5 +1,6 @@
 // 入力チェックのエラーメッセージ（日本語）。画面にそのまま表示される文言なので、
 // docs/screens/specs/common.mjs の「メッセージ一覧」と一致させること。
+
 import {
   MAX_POST_LENGTH,
   MAX_POST_MEDIA,
@@ -25,4 +26,6 @@ export const messages = {
   postEmpty: '本文または画像を入力してください',
   replyAndQuote: 'リプライと引用は同時に指定できません',
   invalidUrl: 'URL の形式が正しくありません',
+  /** 画像は「POST /media でアップロードした画像」の URL だけを指定できる（外部の URL は不可） */
+  invalidMediaUrl: '画像は、アップロードした画像を指定してください',
 } as const

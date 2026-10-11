@@ -23,3 +23,6 @@ test-results
 # OS / Editor
 .DS_Store
 Thumbs.db
+
+# Claude Code のサブエージェントが使う作業用の worktree（並行開発の一時的な作業場所）
+.claude/worktrees

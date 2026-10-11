@@ -1,5 +1,6 @@
 // `pnpm db:reset` の本体。開発 DB を「空の状態」から作り直す: 全テーブル削除 → マイグレーション → seed。
 // ⚠ 全データが消える。Claude Code からは /db-reset（ユーザー確認つき）経由でのみ実行する（hooks が直接実行をブロックする）。
+
 import process from 'node:process'
 import { sql } from 'kysely'
 import { runSeed } from '../../seed'

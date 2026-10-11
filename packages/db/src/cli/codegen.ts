@@ -5,6 +5,7 @@
 // - テーブル名・カラム名は DB と同じ snake_case のまま（camelCase に変換しない）。
 //   SQL とコードを 1 対 1 で対応させ、クエリを読みやすく・チューニングしやすくするため（docs/adr/0003）
 // - date 型の列は、実行時に 'YYYY-MM-DD' の文字列で返るため、型も string に上書きしている（src/index.ts 参照）
+
 import { spawnSync } from 'node:child_process'
 import process from 'node:process'
 import { getDatabaseUrl } from '../config'

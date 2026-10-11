@@ -1,5 +1,7 @@
+// 本文の解析（ハッシュタグ・メンションの取り出し）のテスト。
+
 import { describe, expect, it } from 'vitest'
-import { extractHashtags, extractMentions } from './text'
+import { extractHashtags, extractMentions, utf8ByteLength } from './text'
 
 describe('extractHashtags', () => {
   it('# を除いた小文字のタグを、出現順に返す', () => {
@@ -39,5 +41,15 @@ describe('extractMentions', () => {
 
   it('メンションが無ければ空の配列を返す', () => {
     expect(extractMentions('メンションなし')).toEqual([])
+  })
+})
+
+describe('utf8ByteLength', () => {
+  it('英数字は 1、ひらがなは 3、絵文字は 4 バイトとして数える', () => {
+    expect(utf8ByteLength('abc')).toBe(3)
+    expect(utf8ByteLength('あ')).toBe(3)
+    expect(utf8ByteLength('é')).toBe(2)
+    expect(utf8ByteLength('🐱')).toBe(4)
+    expect(utf8ByteLength('')).toBe(0)
   })
 })

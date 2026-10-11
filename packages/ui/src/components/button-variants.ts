@@ -1,6 +1,7 @@
-import type { VariantProps } from 'class-variance-authority'
 // ボタンの見た目のバリエーション（cva で定義）。Button.vue が使う。
 // 色は意味のある名前のトークン（bg-accent など）を使う。固定色は使わない（ダークモードに追従するため）。
+
+import type { VariantProps } from 'class-variance-authority'
 import { cva } from 'class-variance-authority'
 
 export const buttonVariants = cva(

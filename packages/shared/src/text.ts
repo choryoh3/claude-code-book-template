@@ -1,5 +1,6 @@
 // 投稿本文の解析（ハッシュタグ・メンションの取り出し）。
 // 投稿の保存時（server）と、本文のリンク表示（client）の両方が同じ規則を使えるよう、ここに 1 つだけ置く。
+
 import { HANDLE_MAX_LENGTH, HANDLE_MIN_LENGTH } from './constants'
 
 /** 「#タグ」: 英数字・アンダースコア・日本語などの文字（Unicode の文字と数字）が続く部分 */
@@ -34,4 +35,21 @@ export function extractMentions(content: string): string[] {
     (match[1] ?? '').toLowerCase(),
   )
   return [...new Set(handles)]
+}
+
+/**
+ * 文字列を UTF-8 にしたときのバイト数（英数字は 1、ひらがな・漢字は 3、絵文字は 4 バイト）。
+ * bcrypt が「72 バイト」までしか扱えないため、パスワードの長さの確認に使う。
+ * TextEncoder を使わないのは、shared を実行環境（ブラウザ / Node）に依存させないため。
+ */
+export function utf8ByteLength(value: string): number {
+  let bytes = 0
+  for (const char of value) {
+    const codePoint = char.codePointAt(0) ?? 0
+    if (codePoint <= 0x7f) bytes += 1
+    else if (codePoint <= 0x7ff) bytes += 2
+    else if (codePoint <= 0xffff) bytes += 3
+    else bytes += 4
+  }
+  return bytes
 }

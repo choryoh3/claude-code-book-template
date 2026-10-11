@@ -1,5 +1,6 @@
 // DB の接続設定。接続先は環境変数 DATABASE_URL で決める。
 // ルートの .env があれば自動で読み込む（無くても、開発用の既定値で動くようにしてある）。
+
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 

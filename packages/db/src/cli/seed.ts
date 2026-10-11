@@ -1,4 +1,5 @@
 // `pnpm db:seed` の本体。テストデータを投入する（既存データは全て消して入れ直す）。
+
 import process from 'node:process'
 import { runSeed } from '../../seed'
 import { closeDb, getDb } from '../index'

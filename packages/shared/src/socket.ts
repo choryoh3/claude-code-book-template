@@ -1,7 +1,8 @@
-import type { NotificationDto, UnreadCountDto } from './schemas/notification'
 // Socket.IO のイベント名と、送受信するデータの型。
 // server と client が同じ型で `Server<ClientToServerEvents, ServerToClientEvents, {}, SocketData>` を作ることで、
 // イベント名の打ち間違いや、データの形のズレをコンパイル時に見つけられる（skill: realtime-socket）。
+
+import type { NotificationDto, UnreadCountDto } from './schemas/notification'
 import { z } from 'zod'
 import { notificationDtoSchema, unreadCountDtoSchema } from './schemas/notification'
 

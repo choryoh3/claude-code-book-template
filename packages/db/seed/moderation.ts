@@ -1,5 +1,6 @@
 // seed の運営まわり: 通報、管理者操作の監査ログ、日次の利用者（DAU）。
 // 通報 → 対応 → 監査ログ、の時刻の前後関係が矛盾しないように作る。
+
 import type { Insertable } from 'kysely'
 import type { AuditLogs, DailyActiveUsers, Json, Reports } from '../src/generated/db'
 import type { Random } from './random'

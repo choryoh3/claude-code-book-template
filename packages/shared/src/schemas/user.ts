@@ -1,4 +1,5 @@
 // ユーザーに関する契約: 登録・ログイン・プロフィール。
+
 import { z } from 'zod'
 import {
   BIO_MAX_LENGTH,
@@ -12,7 +13,9 @@ import {
   USER_ROLES,
 } from '../constants'
 import { messages } from '../messages'
+import { utf8ByteLength } from '../text'
 import { idSchema, isoDateTimeSchema } from './common'
+import { uploadedImageUrlSchema } from './media'
 
 // ---------------------------------------------------------------- 入力項目（登録・ログイン・プロフィールで共通）
 export const handleSchema = z
@@ -33,6 +36,11 @@ export const newPasswordSchema = z
   .max(PASSWORD_MAX_LENGTH, messages.passwordTooLong)
   .regex(/[A-Z]/i, messages.invalidPassword)
   .regex(/\d/, messages.invalidPassword)
+  // bcrypt が扱えるのは「72 バイト」まで。日本語などは 1 文字が 3 バイトなので、文字数だけでは足りない
+  // （超えた部分は黙って無視され、パスワードの一部しか照合されなくなるため、バイト数でも弾く）
+  .refine((password) => utf8ByteLength(password) <= PASSWORD_MAX_LENGTH, {
+    error: messages.passwordTooLong,
+  })
 
 export const displayNameSchema = z
   .string(messages.required('表示名'))
@@ -74,8 +82,8 @@ export const updateProfileSchema = z
   .object({
     displayName: displayNameSchema,
     bio: bioSchema,
-    avatarUrl: z.url(messages.invalidUrl).nullable(),
-    headerUrl: z.url(messages.invalidUrl).nullable(),
+    avatarUrl: uploadedImageUrlSchema.nullable(),
+    headerUrl: uploadedImageUrlSchema.nullable(),
   })
   .partial()
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>

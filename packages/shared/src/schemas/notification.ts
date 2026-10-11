@@ -1,4 +1,5 @@
 // 通知に関する契約。一覧の取得（REST）と、リアルタイム配信（Socket.IO）で同じ DTO を使う。
+
 import { z } from 'zod'
 import { NOTIFICATION_TYPES } from '../constants'
 import { cursorPageQuerySchema, cursorPageSchema, idSchema, isoDateTimeSchema } from './common'

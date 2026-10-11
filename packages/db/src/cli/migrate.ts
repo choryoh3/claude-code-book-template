@@ -1,5 +1,6 @@
 // `pnpm db:migrate` の本体。SQL マイグレーションを適用する。
 // 使い方: tsx src/cli/migrate.ts up | down
+
 import process from 'node:process'
 import { runMigrations } from '../migrations'
 

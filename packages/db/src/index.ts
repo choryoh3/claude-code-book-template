@@ -1,6 +1,7 @@
-import type { DB } from './generated/db'
 // @xclone/db の入口。Kysely のインスタンス（DB への窓口）と、型を公開する。
 // user/server と admin/server はここから `getDb()` を使って、同じ DB に SQL を発行する。
+
+import type { DB } from './generated/db'
 import { Kysely, PostgresDialect } from 'kysely'
 import pg from 'pg'
 import { getDatabaseUrl } from './config'
@@ -36,5 +37,7 @@ export async function closeDb(): Promise<void> {
 }
 
 export type { DB } from './generated/db'
+/** マイグレーションの実行（テスト用 DB の準備などで使う） */
+export { runMigrations } from './migrations'
 export { sql } from 'kysely'
 export type { Insertable, Selectable, Updateable } from 'kysely'

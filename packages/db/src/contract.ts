@@ -2,6 +2,7 @@
 //
 // どちらかを変えて食い違うと、この下の `Assert` が型エラーになり、`pnpm typecheck` が失敗する
 // （例: DB の enum に値を足したのに、shared の定数に足し忘れた）。実行時には何も起きない。
+
 import type {
   AUDIT_ACTIONS,
   NOTIFICATION_TYPES,

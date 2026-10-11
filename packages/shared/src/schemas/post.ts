@@ -1,8 +1,10 @@
 // 投稿に関する契約: 作成・表示（DTO）・タイムライン。
+
 import { z } from 'zod'
 import { MAX_POST_LENGTH, MAX_POST_MEDIA, POST_STATUSES } from '../constants'
 import { messages } from '../messages'
 import { cursorPageQuerySchema, cursorPageSchema, idSchema, isoDateTimeSchema } from './common'
+import { uploadedImageUrlSchema } from './media'
 import { userSummaryDtoSchema } from './user'
 
 // ---------------------------------------------------------------- リクエスト
@@ -15,7 +17,7 @@ export const createPostSchema = z
   .object({
     content: z.string().max(MAX_POST_LENGTH, messages.postTooLong).default(''),
     mediaUrls: z
-      .array(z.url(messages.invalidUrl))
+      .array(uploadedImageUrlSchema)
       .max(MAX_POST_MEDIA, messages.tooManyMedia)
       .default([]),
     replyToId: idSchema.optional(),

@@ -1,6 +1,7 @@
 // API のエラー応答の形と、エラーコード。
 // エラーコードは「安定した識別子」で、画面の分岐・ログの検索・不具合調査に使う（.claude/rules/observability.md）。
 // 文言（message）は変わってよいが、コードは変えない。
+
 import { z } from 'zod'
 
 export const ERROR_CODES = {

@@ -1,3 +1,5 @@
+// 登録・ログイン・プロフィール更新の入力チェックのテスト。
+
 import { describe, expect, it } from 'vitest'
 import { messages } from '../messages'
 import { loginSchema, registerSchema, updateProfileSchema } from './user'
@@ -38,6 +40,13 @@ describe('registerSchema', () => {
 
   it('パスワードが 72 文字を超えると拒否する（bcrypt は 72 バイトまでしか見ないため）', () => {
     expect(registerErrors({ password: `a1${'x'.repeat(71)}` })).toContain(messages.passwordTooLong)
+  })
+
+  it('日本語のパスワードは、文字数が 72 以下でも 72 バイトを超えたら拒否する', () => {
+    // 「あ」は 1 文字 3 バイト。25 文字 + 英数字 2 文字 = 77 バイト（文字数は 27 なので文字数の検査は通る）
+    expect(registerErrors({ password: `a1${'あ'.repeat(25)}` })).toContain(messages.passwordTooLong)
+    // 23 文字 + 2 文字 = 71 バイト なら受け付ける
+    expect(registerErrors({ password: `a1${'あ'.repeat(23)}` })).toEqual([])
   })
 
   it('メールアドレスの形式が不正なら拒否する', () => {

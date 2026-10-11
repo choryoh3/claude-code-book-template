@@ -1,6 +1,3 @@
-import type { Insertable, Transaction } from 'kysely'
-import type { Database } from './src'
-import type { DB } from './src/generated/db'
 // テストデータ（seed）の入口。`pnpm db:seed` で実行される。
 //
 // 動作確認に必要な「あらゆる状態」のデータを DB に入れる。内容の一覧・ログイン情報は docs/test-data.md。
@@ -10,6 +7,10 @@ import type { DB } from './src/generated/db'
 //
 // データの作り方は seed/ 以下に役割ごとに分けてある:
 //   users.ts 利用者 / posts.ts 投稿 / social.ts フォロー・反応 / notifications.ts 通知 / moderation.ts 通報・監査ログ・DAU
+
+import type { Insertable, Transaction } from 'kysely'
+import type { Database } from './src'
+import type { DB } from './src/generated/db'
 import bcrypt from 'bcrypt'
 import { sql } from 'kysely'
 import { resolveBaseDate, toDateString } from './seed/clock'

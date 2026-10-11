@@ -48,18 +48,18 @@ erDiagram
 
 ## インデックスと、使う場面
 
-| 場面                                 | インデックス                                                                                |
-| ------------------------------------ | ------------------------------------------------------------------------------------------- |
-| フォロー中タイムライン               | `posts_author_created_idx (author_id, created_at DESC, id DESC)` + `follows_pkey`           |
-| おすすめ・全体の新しい順（cursor）   | `posts_visible_created_idx (created_at DESC, id DESC) WHERE status = 'visible'`             |
-| プロフィールの投稿 / リプライ一覧    | `posts_author_created_idx` / `posts_reply_to_idx`                                           |
-| 投稿・ユーザー・タグの部分一致検索   | `pg_trgm` の GIN（`posts_content_trgm_idx` など）。日本語でも使える                         |
-| トレンド・タグ検索                   | `post_hashtags_hashtag_created_idx (hashtag_id, created_at DESC)`                           |
-| 通知一覧 / 未読バッジ                | `notifications_recipient_created_idx` / `notifications_unread_idx`（未読のみの部分 index）  |
-| フォロワー・いいね・ブックマーク一覧 | `follows_followee_created_idx`、`likes_user_created_idx`、`bookmarks_user_created_idx` など |
-| 管理画面の一覧                       | `users_role_suspended_created_idx`、`reports_status_created_idx`、`audit_logs_*`            |
-| ダッシュボードの DAU                 | `daily_active_users_pkey`（日付範囲の検索と日ごとの集計）                                   |
-| 凍結時の token 失効                  | `refresh_tokens_active_user_idx`（失効していない行だけ）                                    |
+| 場面                                 | インデックス                                                                                                                                                 |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| フォロー中タイムライン               | `posts_author_created_idx (author_id, created_at DESC, id DESC)` + `follows_pkey`                                                                            |
+| おすすめ・全体の新しい順（cursor）   | `posts_visible_created_idx (created_at DESC, id DESC) WHERE status = 'visible'`                                                                              |
+| プロフィールの投稿 / リプライ一覧    | `posts_author_created_idx` / `posts_reply_to_idx`                                                                                                            |
+| 投稿・ユーザー・タグの部分一致検索   | `pg_trgm` の GIN（`posts_content_trgm_idx` など）。日本語でも使える                                                                                          |
+| トレンド（直近 7 日）・タグ検索      | `post_hashtags_created_idx (created_at DESC)`（期間で絞る。Phase 3 で追加）・`post_hashtags_hashtag_created_idx (hashtag_id, created_at DESC)`（タグで絞る） |
+| 通知一覧 / 未読バッジ                | `notifications_recipient_created_idx` / `notifications_unread_idx`（未読のみの部分 index）                                                                   |
+| フォロワー・いいね・ブックマーク一覧 | `follows_followee_created_idx`、`likes_user_created_idx`、`bookmarks_user_created_idx` など                                                                  |
+| 管理画面の一覧                       | `users_role_suspended_created_idx`、`reports_status_created_idx`、`audit_logs_*`                                                                             |
+| ダッシュボードの DAU                 | `daily_active_users_pkey`（日付範囲の検索と日ごとの集計）                                                                                                    |
+| 凍結時の token 失効                  | `refresh_tokens_active_user_idx`（失効していない行だけ）                                                                                                     |
 
 **書き方の注意**: ハンドル・メールの完全一致は `lower(handle) = lower($1)` と書く（`handle = $1` だと一意 index が使われない）。
 

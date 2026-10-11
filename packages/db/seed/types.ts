@@ -1,5 +1,6 @@
 // seed の各ファイルで共有する型。
 // DB に入れる行（Insertable）とは別に、「あとで関連づけるために覚えておく情報」をここで定義する。
+
 import type { PostStatus } from '../src/generated/db'
 
 /** seed で作ったユーザー（投稿・フォローなどを作るとき、誰が誰かを参照するために使う） */

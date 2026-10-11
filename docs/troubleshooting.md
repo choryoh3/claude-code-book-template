@@ -135,3 +135,36 @@
 - 原因: 型チェック・lint の直後で PC の負荷が高く、テスト用のワーカープロセスが時間内に起動しなかった（一時的なもの）
 - 確認: `pnpm --filter "@xclone/ui" test` を単独で、または `pnpm test` をもう一度実行すると通る（2026-10-11 に再現しないことを確認）
 - 対処: 再実行する。頻発するようになったら、Vitest の設定でワーカー数を減らす・`pool` を変えるなどを検討し、ここに記録する
+
+## サーバー（Phase 3）
+
+### トランザクションの中で例外を投げたら、その前の更新が消えた
+
+- 症状: refresh token の盗用を検知して「全トークンを失効」させたのに、失効していなかった（テスト「交換済みの古い Cookie が再び使われたら…」が失敗）
+- 原因: 失効の UPDATE の直後に、同じトランザクションの中で例外を投げていた。例外でトランザクション全体がロールバックされ、失効も取り消された
+- 対処: トランザクションからは「結果（盗用の疑い・凍結）」を返し、**トランザクションの外で**失効させてから例外を投げる（`user/server/src/services/auth.service.ts` の refresh）
+- 教訓: 「エラーにするが、記録は残したい」処理はトランザクションの外で行う
+
+### Vitest の `test.env` が globalSetup に届かない
+
+- 症状: テスト用 DB を準備する globalSetup で `DATABASE_URL` が空になり、`Invalid URL` で失敗する
+- 原因: Vitest 5 の `test.env` はテストの実行側にだけ渡り、全体の準備（globalSetup）には渡らない
+- 対処: `vitest.config.ts` の読み込み時に `Object.assign(process.env, TEST_ENV)` で環境変数そのものを設定する（`user/server/vitest.config.ts`）
+
+### Express の Request に独自の項目（req.auth）を足す型定義が効かない
+
+- 症状: `declare module 'express-serve-static-core'` で拡張したのに `Property 'auth' does not exist`
+- 原因: pnpm では `express-serve-static-core` が直接の依存ではないため、その名前で拡張すると「別の新しいモジュール」の宣言になる
+- 対処: Express が用意しているグローバルの `Express.Request` を拡張する（`user/server/src/types/express.d.ts`）
+
+### import の並べ替えで、ファイル先頭の説明コメントが import の間にずれる
+
+- 症状: 保存時の ESLint（perfectionist/sort-imports）で、先頭の `// このファイルは…` が 2 行目以降の import の上に移動する
+- 原因: 説明コメントが「最初の import に付いたコメント」と見なされ、import と一緒に並べ替えられる
+- 対処: **説明コメントの後に空行を 1 行入れる**（空行で切り離すと並べ替えの対象にならない）
+
+### `.env.example` が AI から読めない
+
+- 症状: `.env.example` を Read しようとすると「権限の設定で拒否されています」になる
+- 原因: `.claude/settings.json` の `permissions.deny` の `Read(./.env.*)` が、見本ファイル（秘密ではない）にも当てはまっている
+- 対処（未実施・人の判断待ち）: 拒否の対象を `Read(./.env)`・`Read(./.env.local)`・`Read(./.env.*.local)`・`Read(./.env.production)` などの秘密ファイルに絞る

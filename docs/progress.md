@@ -15,6 +15,33 @@
 
 ---
 
+## 2026-10-12 Phase 3（P3-1〜P3-10）user/server（一般ユーザー向け API）
+
+- やったこと:
+  - `user/server`（Express 5 + Kysely の SQL + Socket.IO）: 認証（登録・ログイン・refresh のローテーションと盗用の検知・ログアウト）、プロフィール・フォロー、投稿（リプライ・引用・ハッシュタグ・メンション・削除）、いいね・リポスト・ブックマーク、タイムライン（フォロー中・おすすめ）、通知（一覧・未読・既読・リアルタイム配信）、検索・トレンド、通報、画像のアップロード（中身の検査つき）
+  - 土台: 設定の Zod 検証、pino の構造化ログ（requestId・userId つき、秘密値の伏せ字）、共通のエラー応答、DAU の記録、回数制限
+  - API 一覧 `docs/api/user.md`、`user/server/README.md`
+  - CI（XClone Arcade）のチェックに PostgreSQL のサービスを追加（API テストを GitHub 上でも実行するため）
+  - DB: トレンド用のインデックスを追加（マイグレーション 1 本）。shared: 画像 URL の制限・アップロード・通報の応答のスキーマ、パスワードのバイト数の確認
+- コードレビュー（code-reviewer エージェント）: **重大 2 件**を修正し、回帰テストを追加
+  1. ack なしの Socket.IO イベント 1 回でサーバー全体が止まる → ack の確認と、例外を外に出さない作り、`unhandledRejection` の安全網
+  2. 画像 URL に外部 URL・`javascript:` を保存できる（トラッキング・XSS）→ 「このサーバーにアップロードした画像」だけを許す（shared で形、サーバーでホスト名を確認）
+  - 改善推奨も修正: 壊れた cursor・大きすぎる本文が 500 になる、複数タブの同時 refresh で全端末がログアウトされる、凍結ユーザーの中身が API で見える、通知の配信の N+1、ハッシュタグ登録のロック、登録のトランザクション、おすすめの順位のずれ、トレンドのインデックス、通知の連打、アップロードの回数制限、パスワードの 72 バイト
+- 確認したこと（実行して確認済み）:
+  - API テスト **7 ファイル・77 件すべて合格**（本物の PostgreSQL。Socket.IO は実際にサーバーを起動して接続）。shared のテスト 38 件合格
+  - `pnpm typecheck`（db / shared / ui / user-server）・ESLint・Prettier がすべて通る
+  - テストが本物のバグを見つけた: トランザクション内で例外を投げて「失効」がロールバックされていた（`docs/troubleshooting.md`）
+- 判断とその理由:
+  - 一覧は「ID の並びを決めるクエリ」と「ID → 画面用の DTO を 1 回の SQL で作る hydratePosts」の 2 段階（N+1 を構造的に防ぐ）
+  - cursor の時刻は DB の文字列のまま（JavaScript の Date にするとマイクロ秒が落ち、行を読み飛ばすため）
+  - 通知は「操作と同じトランザクションで保存 → コミット後に配信」（配信に失敗しても一覧で取り戻せる）
+  - refresh token の同時使用の猶予 10 秒（ADR 0004 に追記）
+- 次の一手: Phase 4（user/client）は別の worktree で作業中。完了したら統合し、実際の API と繋いで確認 → P4-8（E2E）。その後 Phase 5（admin/server）
+- 既知の課題・注意点:
+  - `docs/roadmap.md` の「Phase 3 で見つかった、後の Phase で対応すること」（凍結時の Socket.IO の切断、EXIF の削除、DAU の日付の基準など）
+  - `.env.example` が AI の読み取り拒否の設定に巻き込まれて読めない（中身の更新は人の判断待ち。`docs/troubleshooting.md`）
+  - API テストは 1 回 10 分前後かかる（この PC で別の作業と並行しているため。単独なら短くなる）
+
 ## 2026-10-11 Phase 2（P2-1〜P2-4）shared と ui ／ GitHub Actions の作り替え
 
 - やったこと:

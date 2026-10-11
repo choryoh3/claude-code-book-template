@@ -1,5 +1,6 @@
 // seed の投稿: 通常の投稿・リプライ・引用・画像つき・特殊な状態（削除済み・非表示）を作る。
 // 作る内容と件数は docs/test-data.md に書いてある。変えたら両方を更新すること。
+
 import type { Insertable } from 'kysely'
 import type { Hashtags, PostHashtags, Posts } from '../src/generated/db'
 import type { Random } from './random'

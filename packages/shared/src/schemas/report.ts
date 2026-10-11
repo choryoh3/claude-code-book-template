@@ -1,4 +1,5 @@
 // 通報に関する契約。ユーザーが送り（user/server）、管理者が処理する（admin/server）。
+
 import { z } from 'zod'
 import {
   ADMIN_NOTE_MAX_LENGTH,
@@ -23,6 +24,10 @@ export const createReportSchema = z.object({
     .default(''),
 })
 export type CreateReportInput = z.infer<typeof createReportSchema>
+
+/** 通報を受け付けたときの応答（201） */
+export const reportCreatedDtoSchema = z.object({ id: idSchema })
+export type ReportCreatedDto = z.infer<typeof reportCreatedDtoSchema>
 
 /** 管理者が見る通報 1 件 */
 export const reportDtoSchema = z.object({

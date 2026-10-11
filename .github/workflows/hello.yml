@@ -85,7 +85,23 @@ jobs:
     name: 🧪 チェック（整形・lint・型・テスト）
     needs: start
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    # API のテスト（user/server）は本物の PostgreSQL を使う。テスト用の DB（xclone_test）はテストが自動で作る
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test999 # CI の中だけで使う、外から接続できない使い捨ての DB
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:test999@localhost:5432/xclone_test
     steps:
       - name: 📥 リポジトリを取得
         uses: actions/checkout@v5
