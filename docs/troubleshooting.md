@@ -126,3 +126,12 @@
   2. 各 `run` ブロックの bash の構文（`bash -n`）
   3. ログ出力だけで完結するステップは、環境変数（`GITHUB_RUN_ID` `GITHUB_STEP_SUMMARY` `GITHUB_OUTPUT` など）を模擬して、実際に実行できる
 - ESLint の YAML 規則は「引用符なしの書き方（plain scalar）」を求める。`eslint --fix` で直す（Prettier と衝突しないことを確認済み）
+
+## テスト
+
+### Vitest が「Failed to start forks worker ... Timeout waiting for worker to respond」で失敗する
+
+- 症状: `pnpm check` の途中で、ui のテストが「テスト 0 件・エラー 4 件」で失敗する。テストの中身の失敗ではない
+- 原因: 型チェック・lint の直後で PC の負荷が高く、テスト用のワーカープロセスが時間内に起動しなかった（一時的なもの）
+- 確認: `pnpm --filter "@xclone/ui" test` を単独で、または `pnpm test` をもう一度実行すると通る（2026-10-11 に再現しないことを確認）
+- 対処: 再実行する。頻発するようになったら、Vitest の設定でワーカー数を減らす・`pool` を変えるなどを検討し、ここに記録する
