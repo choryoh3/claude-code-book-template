@@ -354,7 +354,10 @@ pnpm dev            # user/server（http://localhost:3000）と user/client（ht
 ブラウザで **http://localhost:5173** を開き、テストデータの `alice@example.com` / `Password#123` でログインします（画面の `/api` への通信は、Vite が 3000 番の API に転送します）。
 保存すると、画面はすぐに反映され、API は自動で再起動します。止めるときは Ctrl + C です。
 
-個別に起動したいとき:
+> ⚠ **起動に時間がかかります**。画面は約 10 秒、API は 16〜30 秒（この PC の実測）で、API が立ち上がるまでの間、画面のターミナルに `http proxy error ... ECONNREFUSED` が出ますが、これは正常です（API の `user-server が起動しました` が出れば解消）。
+> **PC の空きメモリが少ない（1.5GB 未満）と、`pnpm dev` で API が何分たっても立ち上がらないことがあります**。その場合は、次の「個別に起動」のとおり、API と画面を別々のターミナルで起動してください（確実に動きます）。詳しくは [`docs/troubleshooting.md`](docs/troubleshooting.md) の「起動」。
+
+個別に起動したいとき（**`pnpm dev` が進まないときはこちら**）:
 
 ```powershell
 pnpm --filter ./user/server dev          # API だけ（http://localhost:3000）

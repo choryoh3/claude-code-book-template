@@ -186,3 +186,38 @@
 - 原因: X と同じく、「フォロー中」のボタンは **マウスを乗せると「フォロー解除」に表示が変わる**。クリックした直後はマウスがボタンの上にあるので、名前が「フォロー解除」になっていた
 - 対処: 「フォロー中」「フォロー解除」のどちらでもフォロー済みとみなす（`e2e/pages/app.ts`）
 - 教訓: 失敗時の `error-context.md`（ページの状態）を見ると、実際の表示がすぐ分かる
+
+## 起動
+
+### 画面のターミナルに `http proxy error: /api/... ECONNREFUSED` が出続ける
+
+- 症状: `pnpm dev` のあと、画面（Vite, :5173）のターミナルに `[vite] http proxy error: /api/trends` と `AggregateError [ECONNREFUSED]` が繰り返し出る。画面は開くがログインできない
+- 意味: 画面から API（user/server, :3000）への通信が、**API がまだ待ち受けていない（または落ちている）ため** 接続を拒否されている。画面の不具合ではない
+- 起動中に数回出るのは正常: Vite は約 10 秒で準備できるが、API は 16〜30 秒（この PC の実測）かかる。API の起動ログ（`user-server が起動しました`）が出るまでは出る
+- 切り分け:
+  1. `curl.exe http://localhost:3000/api/health` が `{"status":"ok"}` を返すか。返せば API は起動済み（画面を再読み込みする）
+  2. 返さないなら、API のターミナルに出力があるか・プロセスがあるか（`Get-NetTCPConnection -LocalPort 3000 -State Listen`）
+  3. **空きメモリを確認**（`Get-CimInstance Win32_OperatingSystem` の `FreePhysicalMemory`、またはタスクマネージャーの「パフォーマンス → メモリ」）。1.5GB を切っていたら、次の「起動が進まない」へ
+
+### `pnpm dev` で API（user/server）が待ち受けない（起動が進まない）
+
+- 症状: `pnpm dev`（= `tsx watch src/main.ts`）で、Vite は ready になるのに、API が 5 分以上たっても 3000 番で待ち受けない。API の出力が 1 行も出ない
+- 観察できた事実（2026-10-12）:
+  - 同じ PC で `pnpm --filter ./user/server start`（`tsx src/main.ts`、監視なし）は 16〜29 秒で起動した
+  - 止まっているとき、API のプロセスは CPU をほとんど使わず（累積 2 秒）、メモリも 13MB と小さく、TCP の待ち受けもなかった（計算が重いのではなく、何かの待ちで止まっている）
+  - そのとき PC の空きメモリは 0.65〜1.2GB（全体 7.8GB）。メモリ不足を理由に、Claude Code が背景のサーバーを自動停止した出来事も同じ時間帯に起きた
+- **根本原因は未特定**。仮説は 2 つ（どちらも未検証）:
+  - A: `tsx watch` と pino の別スレッド（transport）の起動の競合。ただし、同じ pino の設定で `start` は 2 回とも起動できているため、決め手に欠ける
+  - C: メモリ不足による遅延・停止（ページングで I/O 待ちになると、CPU を使わず進まない）。観察とは整合するが、状況証拠のみ
+- 対処（確実に動く方法）: **API と画面を別々のターミナルで起動する**
+
+  ```powershell
+  pnpm --filter ./user/server start     # API（約 30 秒。ファイルを保存しても自動再起動はしない）
+  pnpm --filter ./user/client dev       # 画面
+  ```
+
+  API の変更を反映するには、API のターミナルで Ctrl + C → 再度 `start`。自動再起動が欲しい場合は、メモリに余裕があるときに `pnpm --filter ./user/server dev` を試す
+
+- メモリを空ける: 使っていないブラウザのタブ・アプリ・VS Code のウィンドウを閉じる。Claude Code・VS Code・Chrome だけで 1GB 以上使う
+- 次にやること（メモリが 2GB 以上空いているときに 1 回だけ）: `tsx watch` と `tsx`（監視なし）で、起動から health 200 までの秒数を測り比べる。差がなければ原因は C（メモリ）と見てよい。差が出たら A を疑い、`logger.ts` の transport を同期出力に変える案（`pino(opts, multistream(...))`）を検討する
+- 教訓: 起動の「遅さ」と「止まっている」は区別して調べる。プロセスの CPU 時間・メモリ・待ち受けポートを見ると、計算が重いのか待ちなのかが分かる
