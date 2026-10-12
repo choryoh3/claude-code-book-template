@@ -167,7 +167,8 @@
 
 - 症状: `.env.example` を Read しようとすると「権限の設定で拒否されています」になる
 - 原因: `.claude/settings.json` の `permissions.deny` の `Read(./.env.*)` が、見本ファイル（秘密ではない）にも当てはまっている
-- 対処（未実施・人の判断待ち）: 拒否の対象を `Read(./.env)`・`Read(./.env.local)`・`Read(./.env.*.local)`・`Read(./.env.production)` などの秘密ファイルに絞る
+- 対処（2026-10-12、ユーザーの承認を得て実施）: 拒否の対象を、秘密の値が入るファイル（`.env`・`.env.local`・`.env.*.local`・`.env.development`・`.env.test`・`.env.production`）に絞った。`.env.example` は読める（変更はすぐに有効になった）
+- 注意: 新しい種類の秘密ファイル（例 `.env.staging`）を作るときは、`permissions.deny` にも追加する
 
 ## E2E（Playwright）
 
