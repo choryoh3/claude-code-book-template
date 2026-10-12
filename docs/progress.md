@@ -15,6 +15,24 @@
 
 ---
 
+## 2026-10-12 Phase 4 の統合と P4-8（E2E）— Phase 4 完了
+
+- やったこと:
+  - worktree で並行して作った user/client を main にマージ（衝突: progress.md は両方を残す、lockfile は再生成）。仮置きの `api/pending-contracts.ts` を削除し、shared のスキーマに置き換え
+  - 実際の API との接続を確認（Vite の proxy 経由）: ログイン・Cookie での復元・タイムライン・投稿・凍結ユーザーの拒否・Socket.IO のリアルタイム通知の 11 項目すべて OK
+  - E2E（Playwright, `e2e/`）: 専用の DB（xclone_e2e）と専用のポート（API 3100 / 画面 5273）で毎回まっさらに起動。Page Object で書いた 2 件（登録 → 投稿 → フォロー・いいね → 通知のリアルタイム受信 / ログアウトと再ログイン）が合格
+  - 画面の開発サーバーのポートと API の転送先を、環境変数で変えられるようにした（`USER_CLIENT_PORT` / `USER_API_TARGET`）
+- 確認したこと: typecheck（5 パッケージ + e2e）・lint・画面のテスト 64 件・ビルド・E2E 2 件
+- E2E が 2 回失敗し、どちらも trace と error-context から原因を特定して直した（`docs/troubleshooting.md`）:
+  1. 起動直後の最初の登録が 13 秒かかり待ち時間を超えた → テスト前の「慣らし運転」（`e2e/warm-up.ts`）
+  2. 「フォロー中」のボタンはマウスを乗せると「フォロー解除」に変わるため見つからなかった → どちらの表示でもフォロー済みとみなす
+- 次の一手: Phase 5（admin/server）。着手前にユーザーの承認を得る
+- 既知の課題・注意点:
+  - E2E は CI（GitHub Actions）ではまだ動かしていない（ブラウザのインストールが必要。Phase 7 で追加）
+  - この PC では、登録 1 回に 9〜15 秒かかることがある（並行作業の負荷。E2E の制限時間は 180 秒にした）
+  - 画面の未実装: 新着の「N 件の投稿を表示」、右サイドバーの「おすすめユーザー」、フォロー一覧の行のフォローボタン（API・shared の追加が必要。Phase 4 の記録を参照）
+  - pnpm がビルドスクリプトを無視した依存（`@parcel/watcher`・`vue-demi`）がある。現状の動作・テストには影響なし
+
 ## 2026-10-12 Phase 3（P3-1〜P3-10）user/server（一般ユーザー向け API）
 
 - やったこと:

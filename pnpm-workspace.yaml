@@ -2,6 +2,7 @@ packages:
   - user/*
   - admin/*
   - packages/*
+  - e2e
 
 # pnpm 10 はデフォルトでインストールスクリプトを実行しない。必要なものだけ許可する
 onlyBuiltDependencies:

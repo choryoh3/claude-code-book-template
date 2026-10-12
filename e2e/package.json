@@ -1,0 +1,17 @@
+{
+  "name": "@xclone/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "ブラウザを実際に操作して、画面から API・DB まで通しで確かめる E2E テスト（Playwright）",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^26.6.5",
+    "@xclone/db": "workspace:*",
+    "tsx": "^4.23.15"
+  }
+}

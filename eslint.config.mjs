@@ -38,7 +38,7 @@ export default antfu(
     // 理由: packages/db はサーバーではなく「マイグレーション・seed などの CLI ツール」なので、
     // 進捗や結果を console に出すのが仕事。（サーバーのログは pino を使う: .claude/rules/observability.md）
     name: 'xclone/db-cli-tools',
-    files: ['packages/db/**/*.ts'],
+    files: ['packages/db/**/*.ts', 'e2e/prepare-db.ts'],
     rules: {
       'no-console': 'off',
     },

@@ -28,18 +28,18 @@ X（旧 Twitter）の主要機能を再現した SNS です。**一般ユーザ�
 
 ## 1. いまの状況
 
-開発は **Phase（段階）** に分けて進めます。現在は **Phase 0〜3（運用基盤・DB とテストデータ・共通パッケージ・ユーザー向け API）が完了** した段階です。**ユーザー向けの API サーバー（user/server）は起動して使えます**が、画面（Phase 4・作業中）と管理者アプリ（Phase 5〜6）はまだです。
+開発は **Phase（段階）** に分けて進めます。現在は **Phase 0〜4（運用基盤・DB とテストデータ・共通パッケージ・ユーザー向け API・ユーザー向け画面）が完了** した段階です。**一般ユーザー向けのアプリ（画面 + API）は起動して使えます**。管理者アプリ（Phase 5〜6）はまだです。
 
-| Phase | 内容                                                                              | 状態      |
-| ----- | --------------------------------------------------------------------------------- | --------- |
-| **0** | 運用基盤（CLAUDE.md・rules・skills・commands・agents・hooks・MCP・VS Code・docs） | ✅ 完了   |
-| **1** | DB（SQL マイグレーション 13 テーブル・Kysely・テストデータ）                      | ✅ 完了   |
-| **2** | 共通パッケージ（shared: API 契約 / ui: 共通部品）                                 | ✅ 完了   |
-| **3** | user/server（認証・投稿・フォロー・タイムライン・通知・検索・通報・画像）         | ✅ 完了   |
-| 4     | user/client（X のレイアウトの画面）                                               | 🚧 作業中 |
-| 5     | admin/server（管理者認証・RBAC・管理操作・監査ログ）                              | ⏳        |
-| 6     | admin/client（ダッシュボード・管理画面）                                          | ⏳        |
-| 7     | 仕上げ（CI・README・画面仕様書のキャプチャ付き更新）                              | ⏳        |
+| Phase | 内容                                                                              | 状態    |
+| ----- | --------------------------------------------------------------------------------- | ------- |
+| **0** | 運用基盤（CLAUDE.md・rules・skills・commands・agents・hooks・MCP・VS Code・docs） | ✅ 完了 |
+| **1** | DB（SQL マイグレーション 13 テーブル・Kysely・テストデータ）                      | ✅ 完了 |
+| **2** | 共通パッケージ（shared: API 契約 / ui: 共通部品）                                 | ✅ 完了 |
+| **3** | user/server（認証・投稿・フォロー・タイムライン・通知・検索・通報・画像）         | ✅ 完了 |
+| **4** | user/client（X のレイアウトの画面）+ E2E                                          | ✅ 完了 |
+| 5     | admin/server（管理者認証・RBAC・管理操作・監査ログ）                              | ⏳      |
+| 6     | admin/client（ダッシュボード・管理画面）                                          | ⏳      |
+| 7     | 仕上げ（CI・README・画面仕様書のキャプチャ付き更新）                              | ⏳      |
 
 - 詳しいタスクは [`docs/roadmap.md`](docs/roadmap.md)、これまでの記録は [`docs/progress.md`](docs/progress.md)
 - **各 Phase の完了時にコミットし、次の Phase に進む前に人間が確認します**
@@ -236,15 +236,15 @@ flowchart TD
 **DB（テーブルとテストデータ）までは今すぐ動きます**（Phase 1 完了）。一方、画面と API は Phase 2〜6 で作るため、**現時点では `pnpm dev` を実行してもアプリは起動しません**（起動対象がまだ無いため）。
 下の表のとおり、手順は **完成後と同じもの** を先に書いています。Phase が進むごとに動く範囲が増えます。
 
-| 手順                                          | 今すぐ動く                | 動き始める Phase  |
-| --------------------------------------------- | ------------------------- | ----------------- |
-| 3-1 前提ツールの確認                          | ✅                        | -                 |
-| 3-2 依存のインストール                        | ✅                        | -                 |
-| 3-3 環境変数                                  | ✅                        | -                 |
-| 3-4 DB の起動（空の PostgreSQL）              | ✅                        | -                 |
-| 3-5 マイグレーションとテストデータ            | ✅                        | -（Phase 1 完了） |
-| 3-6 アプリの起動                              | ✅ API（user/server）のみ | 画面は Phase 4〜6 |
-| 画面仕様書（Excel）の生成 `pnpm spec:screens` | ✅                        | -                 |
+| 手順                                          | 今すぐ動く                        | 動き始める Phase          |
+| --------------------------------------------- | --------------------------------- | ------------------------- |
+| 3-1 前提ツールの確認                          | ✅                                | -                         |
+| 3-2 依存のインストール                        | ✅                                | -                         |
+| 3-3 環境変数                                  | ✅                                | -                         |
+| 3-4 DB の起動（空の PostgreSQL）              | ✅                                | -                         |
+| 3-5 マイグレーションとテストデータ            | ✅                                | -（Phase 1 完了）         |
+| 3-6 アプリの起動                              | ✅ 一般ユーザー向け（画面 + API） | 管理者アプリは Phase 5〜6 |
+| 画面仕様書（Excel）の生成 `pnpm spec:screens` | ✅                                | -                         |
 
 ### 3-1. 前提ツールを確認する
 
@@ -343,15 +343,25 @@ VS Code の拡張機能「PostgreSQL」（`ckolkman.vscode-postgres`）からも
 
 入る内容とログイン情報は [`docs/test-data.md`](docs/test-data.md)、テーブルの一覧は [`docs/db-schema.md`](docs/db-schema.md) です。
 
-### 3-6. アプリを起動する（Phase 3〜6 以降）
+### 3-6. アプリを起動する
 
-**今すぐ試せる: ユーザー向け API（user/server）だけを起動する**（Phase 3 完了）
+**今すぐ使える: 一般ユーザー向けのアプリ（画面 + API）**（Phase 4 完了）
 
 ```powershell
-pnpm --filter ./user/server dev          # http://localhost:3000 で起動（保存すると自動で再起動）
+pnpm dev            # user/server（http://localhost:3000）と user/client（http://localhost:5173）をまとめて起動
 ```
 
-別のターミナルで、動いているか確かめます。
+ブラウザで **http://localhost:5173** を開き、テストデータの `alice@example.com` / `Password#123` でログインします（画面の `/api` への通信は、Vite が 3000 番の API に転送します）。
+保存すると、画面はすぐに反映され、API は自動で再起動します。止めるときは Ctrl + C です。
+
+個別に起動したいとき:
+
+```powershell
+pnpm --filter ./user/server dev          # API だけ（http://localhost:3000）
+pnpm --filter ./user/client dev          # 画面だけ（http://localhost:5173。API も起動しておく）
+```
+
+API だけを、別のターミナルから確かめることもできます。
 
 ```powershell
 curl.exe http://localhost:3000/api/health
@@ -363,13 +373,9 @@ curl.exe -X POST http://localhost:3000/api/auth/login -H "Content-Type: applicat
 
 API の一覧は [`docs/api/user.md`](docs/api/user.md)、テストは `pnpm --filter ./user/server test`（テスト用 DB `xclone_test` を自動で作ります）。
 
-**全部そろったら（Phase 4〜6 の完了後）**
+E2E テスト（ブラウザを実際に操作する）は `pnpm test:e2e` です（専用の DB とポートで動くので、開発中のサーバーと並行して実行できます。[`e2e/README.md`](e2e/README.md)）。
 
-```powershell
-pnpm dev            # user / admin の client・server をまとめて起動
-```
-
-起動したら、ブラウザで次を開きます。
+**全部そろったら（Phase 5〜6 の完了後）** は、`pnpm dev` で管理者アプリも一緒に起動します。ブラウザで開く URL は次のとおりです。
 
 | アプリ       | URL                   | 役割                            |
 | ------------ | --------------------- | ------------------------------- |
