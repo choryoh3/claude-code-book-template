@@ -19,7 +19,9 @@ const MENTION_PATTERN = new RegExp(
  * @example extractHashtags('今日は #Vue と #vue と #開発日記') // → ['vue', '開発日記']
  */
 export function extractHashtags(content: string): string[] {
-  const tags = Array.from(content.matchAll(HASHTAG_PATTERN), (match) => match[1] ?? '')
+  const tags = Array.from(content.matchAll(HASHTAG_PATTERN), (match) =>
+    (match[1] ?? '').toLowerCase(),
+  )
   return [...new Set(tags)]
 }
 
